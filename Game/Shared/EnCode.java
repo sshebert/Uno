@@ -20,9 +20,6 @@ public class EnCode {
 
     private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-    /*
-    for codes: 0, 2, 3, 4, 8, 9, 10, 12
-     */
     //opcode 3
     public EnCode(int ackOpCode){
         try {
@@ -45,9 +42,9 @@ public class EnCode {
     }
 
     //opcode 2
-    public EnCode(ClientGame game, int opCode){
+    public EnCode(ClientGame game){
         try {
-            stream.write(intToBytes(opCode));
+            stream.write(intToBytes(2));
             if (game != null) {
                 ObjectOutputStream out = new ObjectOutputStream(stream);
                 out.writeObject(game);
@@ -59,9 +56,9 @@ public class EnCode {
     }
 
     //opcode 0
-    public EnCode(Player player, int opCode){
+    public EnCode(Player player){
         try {
-            stream.write(intToBytes(opCode));
+            stream.write(intToBytes(0));
             if (player != null) {
                 ObjectOutputStream out = new ObjectOutputStream(stream);
                 out.writeObject(player);

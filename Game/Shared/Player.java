@@ -38,7 +38,7 @@ public class Player implements Serializable {
     }
 
     public void printCards() {
-        int count = 0;
+        int count = Constants.minIndex;
         for (Card c : hand) {
             System.out.println(count + ") " + c.toString());
             count++;
