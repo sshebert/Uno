@@ -21,7 +21,7 @@ public class UniCastProtocol {
     private static DatagramPacket sender;
     private static int port;
 
-    UniCastProtocol(int port, int timeOutInMill){
+    UniCastProtocol(int port, int timeOutInMill) {
         try {
             socket = new DatagramSocket();
             socket.setSoTimeout(timeOutInMill);
@@ -31,42 +31,42 @@ public class UniCastProtocol {
         }
     }
 
-    public void send(byte[] data, InetAddress sendTo){
+    public void send(byte[] data, InetAddress sendTo) {
 
         try {
-            sender = new DatagramPacket(data,data.length,sendTo,port);
-            sender.setData(data);
-            sender.setPort(data.length);
+            sender = new DatagramPacket(data, data.length, sendTo, port);
             socket.send(sender);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     /*notes
     using InterruptedIOException to signify that you didnt get the packet you wanted
     in the amount of time you expected.
      */
-    public byte[] recieve(int attempts,int dataSize) throws InterruptedIOException {
+    public byte[] recieve(int attempts, int dataSize) throws InterruptedIOException {
         int count = 0;
 
         try {
-            receiver = new DatagramPacket(new byte[dataSize],dataSize);
+            receiver = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(receiver);
             byte[] data = new byte[receiver.getLength()];
             ByteBuffer bb = ByteBuffer.wrap(receiver.getData());
             bb.get(data);
             return data;
-        } catch(SocketTimeoutException e){
+        } catch (SocketTimeoutException e) {
             count++;
-            if (count>=attempts){
+            if (count >= attempts) {
                 throw new InterruptedIOException();
             }
             return null;
-        }catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
 
     }
-    
+
 }
