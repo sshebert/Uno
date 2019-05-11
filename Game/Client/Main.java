@@ -21,15 +21,15 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    static int port = Constants.PORT;//random port for now
     static int timeoutMillis = 100;
     static MultiCastProtocol multiCastProtocol;
     static UniCastProtocol uniCastProtocol;
     static String serverIP;
     static String multicastIP;
     static Player me;
-    static Queue<String> messages = new ConcurrentLinkedQueue<>();
+    static Queue<Integer> messages = new ConcurrentLinkedQueue<>();
     static boolean host;
+    static ClientGame listenerGame;
 
     /**
      * @param args the command line arguments
@@ -48,87 +48,113 @@ public class Main {
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
-            runGame(runLobby());
+            multiCastProtocol = new MultiCastProtocol(multicastIP);
+            //runGame(runLobby());
         } else {
             serverIP = input;
-            uniCastProtocol = new UniCastProtocol(port, serverIP, timeoutMillis);
-            uniCastProtocol.send((new EnCode(me, 0)).getHeader());
+            InetAddress hostIP = null;
+            try{
+                hostIP = InetAddress.getByName(serverIP);
+            }catch (Exception exp){
+                exp.printStackTrace();
+            }
+            uniCastProtocol = new UniCastProtocol(timeoutMillis);
+            uniCastProtocol.send((new EnCode(me)).getHeader(),hostIP);
             try {
                 DeCode deCode = new DeCode(uniCastProtocol.recieve(3, 1400));
                 if (deCode.opcode == 1 && deCode.ip != null) {
                     multicastIP = deCode.ip;
-                    multiCastProtocol = new MultiCastProtocol(port, multicastIP);
+                    multiCastProtocol = new MultiCastProtocol(multicastIP);
                 } else {//server doesnt accept
 
                 }
             } catch (InterruptedIOException exp) {
                 exp.printStackTrace();
             }
-            multiCastProtocol = new MultiCastProtocol(port);
             runGame((new DeCode(multiCastProtocol.receive(1400))).game);
         }
     }
 
-    public static ClientGame runLobby() {
+    /*public static ClientGame runLobby() {
 
-    }
+    }*/
 
-    public static void startGame(CyclicLinkedList<Player> players) {
-        ClientGame game = generateGame(players);
-        //send game
-
-    }
 
     public static void runGame(ClientGame game) {
-        Scanner sc = new Scanner(System.in);
-
         while (game.checkGameRunning()) {
             //receive game
 
-
             if (game.checkCurrPlayer()) {
+                long startTime = System.nanoTime();
                 boolean validMove;
-                System.out.println("Your hand:");
-                game.getCurrPlayer().printCards();
-                System.out.println("Top card:");
-                System.out.println(game.getTopCard().toString());
+                int message;
+
+                //print out all info
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
-                String input = sc.nextLine();
-                if (isNumeric(input)) {
+                message = pollMessages(startTime);
+                //String input = sc.nextLine();
+                if (message == Constants.drawCard) {
+                    Card card = game.drawCard();
+                    System.out.println("Card drawn is " + card.toString());
+                    System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
+                    message = pollMessages(startTime);
+                    switch (message) {
+                        case Constants.hold:
+                            //exit
+                            break;
+                        case Constants.play:
+                            PlayerMove playerMove;
+                            if (card.getSuit().equals(Suit.Wild)) {
+                                System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
+                                message = pollMessages(startTime);
+                                if(message != Constants.timeout){
+                                    playerMove = new PlayerMove(card, resolveSuit(message));
+                                }else{
+                                    playerMove = null;
+                                }
+                            } else {
+                                playerMove = new PlayerMove(card);
+                            }
+                            validMove = game.playCard(playerMove);//will handle null as false
+                            break;
+                        case Constants.timeout:
+                            //exit
+                            break;
+                        default:
+                            //incorrect command, exit
+                            break;
+                    }
+                }
+                else if(message >= Constants.minIndex) {
                     PlayerMove playerMove;
-                    Card card = game.getCard(Integer.parseInt(input));
+                    Card card = game.getCard(message);
                     if (card.getSuit().equals(Suit.Wild)) {
-                        playerMove = new PlayerMove(card, resolveWild(sc));
+                        System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
+                        message = pollMessages(startTime);
+                        if(message != Constants.timeout){
+                            playerMove = new PlayerMove(card, resolveSuit(message));
+                        }else{
+                            playerMove = null;
+                        }
                     } else {
                         playerMove = new PlayerMove(card);
                     }
-                    validMove = game.playCard(playerMove);
-
-                } else if (input.equals("draw")) {
-                    Card card = game.drawCard();
-                    System.out.println("Card drawn is " + card.toString());
-                    System.out.println("Enter y to play drawn card or n to end turn");
-                    input = sc.nextLine();
-                    if (input.equals("y")) {
-                        PlayerMove playerMove;
-                        if (card.getSuit().equals(Suit.Wild)) {
-                            playerMove = new PlayerMove(card, resolveWild(sc));
-                        } else {
-                            playerMove = new PlayerMove(card);
-                        }
-                        validMove = game.playCard(playerMove);
-                    } else {
-                        //end turn
-                    }
-                } else {
-                    //incorrect command
+                    validMove = game.playCard(playerMove);//will handle null as false
+                }
+                else if(message == Constants.exit) {
+                    //disconnect
+                }
+                else if(message == Constants.timeout) {
+                    game.drawCard();
+                }
+                else {
                     game.drawCard();
                 }
 
                 //finish turn
                 game.nextTurn();
                 //send game
-                multiCastProtocol.send((new EnCode(game, 1)).getHeader(), port);
+                multiCastProtocol.send((new EnCode(game)).getHeader());
 
             } else {
                 System.out.println(game.getTopCard().toString() + " is top card");
@@ -140,23 +166,33 @@ public class Main {
             }
         }
         System.out.println(game.getWinner().getName() + " won");
+        //kill thread
     }
 
-    private static Suit resolveWild(Scanner sc) {
-        System.out.println("Enter the name of the suit you would like:");
-        String input = sc.nextLine();
+    private static int pollMessages(long startTime){
+        boolean validCommand = false;
+        int message = Constants.timeout;
+        while (System.nanoTime() - startTime < Constants.timeoutNanos && message == Constants.timeout) {
+            if (messages.size() > 0) {
+                message = messages.remove();
+            }
+        }
+        return message;
+    }
+
+    private static Suit resolveSuit(int input) {
         Suit suit = null;
         switch (input) {
-            case "red":
+            case Constants.red:
                 suit = Suit.Red;
                 break;
-            case "green":
+            case Constants.green:
                 suit = Suit.Green;
                 break;
-            case "blue":
+            case Constants.blue:
                 suit = Suit.Blue;
                 break;
-            case "yellow":
+            case Constants.yellow:
                 suit = Suit.Yellow;
                 break;
         }
@@ -167,14 +203,12 @@ public class Main {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
 
-
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
         if (host) {
             int multiple = players.size() > 5 ? 4 : 2;
             return new ClientGame(players, multiple);
         }
     }
-
 
 }
 
@@ -183,11 +217,11 @@ class ClientListener implements Runnable {
     String helpResponse = "Commands:\n\t\"current player\" - returns name of current player\n\t";
 
     @Override
-    public void run() {
+    public void run() {/*
         Scanner sc = new Scanner(System.in);
         System.out.println("Hey, I'm Robo Rob!");
         System.out.println("The main method is busy right now, so I'll be processing your requests :)");
-        while (ClientGame.getGameRunning()) {
+        while (true) {
             String message = sc.nextLine();
 
             switch (message) {
@@ -219,6 +253,6 @@ class ClientListener implements Runnable {
                     System.out.println("Sorry I don't know what your talking about, type \"help\" for the list of commands");
                     break;
             }
-        }
+        }*/
     }
 }
