@@ -17,30 +17,42 @@ public class DeCode {
 
     public int opcode;
     public String ip;
-    public Card card;
-    public Suit wildSuit;
-    public boolean skip;
+    public Player player;
     public ClientGame game;
-    private byte[] cardData;
 
-    public DeCode(byte[] unParsedData){
+    public DeCode(byte[] unParsedData){//send player object
         ByteBuffer bb = ByteBuffer.wrap(unParsedData);
         opcode = bb.getInt();
-        if(opcode == 1){
-            if(unParsedData.length - 4 > 0) {
+        if(opcode == 0){
+            byte[] playerData = new byte[unParsedData.length-4];
+            if(playerData.length>0){
+                bb.get(playerData);
+                try{
+                    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(playerData));
+                     player = (Player) in.readObject();
+                }
+                catch (IOException exp){
+                    exp.printStackTrace();
+                }
+                catch (ClassNotFoundException exp){
+                    exp.printStackTrace();
+                }
+            }
+        }else if(opcode == 1) {//send multicast IP
+            if (unParsedData.length - 4 > 0) {
                 byte[] unparsedString = new byte[unParsedData.length - 4];
                 bb.get(unparsedString);
                 ip = new String(unparsedString);
-            }else{
+            } else {
                 ip = null;
             }
-        }else if(opcode == 5 ||opcode == 6 ||opcode == 7 ||opcode == 11){
-            cardData = new byte[unParsedData.length-4];
-            if(cardData.length>0){
-                bb.get(cardData);
+        }else if(opcode == 2){//send game
+            byte[] gameData = new byte[unParsedData.length-4];
+            if(gameData.length>0){
+                bb.get(gameData);
                 try{
-                    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(cardData));
-                    card = (Card)in.readObject();
+                    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(gameData));
+                    game = (ClientGame) in.readObject();
                 }
                 catch (IOException exp){
                     exp.printStackTrace();
@@ -48,33 +60,9 @@ public class DeCode {
                 catch (ClassNotFoundException exp){
                     exp.printStackTrace();
                 }
-            }else{
-                card = null;
             }
+        }else if(opcode == 3){//ack
 
-
-        }else if(opcode == 13){//wild suit
-            byte suitNum = bb.get();
-            wildSuit = Suit.fromByte(suitNum);
-           /* cardData = new byte[unParsedData.length-5];
-            if(cardData.length>0){
-                bb.get(cardData);
-                try{
-                    ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(cardData));
-                    card = (Card)in.readObject();
-                }
-                catch (IOException exp){
-                    exp.printStackTrace();
-                }
-                catch (ClassNotFoundException exp){
-                    exp.printStackTrace();
-                }
-            }else{
-                card = null;
-            }*/
-        }else if(opcode == 8){
-            byte byteSkip = bb.get();
-            skip = byteSkip == 1;
         }
     }
 }
