@@ -24,7 +24,7 @@ public class MultiCastProtocol {
 
     MultiCastProtocol(String groupAddress){
         try {
-            socket = new MulticastSocket(Constants.PORT);
+            socket = new MulticastSocket(Constants.MultiPORT);
             socket.joinGroup(InetAddress.getByName(groupAddress));
             inGroup=true;
         }catch(IOException e){
@@ -34,7 +34,7 @@ public class MultiCastProtocol {
 
     MultiCastProtocol(){
         try {
-            socket = new MulticastSocket(Constants.PORT);
+            socket = new MulticastSocket(Constants.MultiPORT);
             inGroup=false;
         }catch(IOException e){
             e.printStackTrace();
@@ -86,7 +86,7 @@ public class MultiCastProtocol {
      */
     public void send(byte[] data){
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.PORT);
+            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.MultiPORT);
             socket.send(packet);
         } catch (UnknownHostException e) {
             e.printStackTrace();

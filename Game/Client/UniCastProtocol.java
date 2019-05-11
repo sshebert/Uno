@@ -34,7 +34,7 @@ public class UniCastProtocol {
     
     UniCastProtocol() {
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(Constants.UniPORT);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -43,7 +43,7 @@ public class UniCastProtocol {
     public void send(byte[] data, InetAddress sendTo) {
 
         try {
-            sender = new DatagramPacket(data, data.length, sendTo, Constants.PORT);
+            sender = new DatagramPacket(data, data.length, sendTo, Constants.UniPORT);
             socket.send(sender);
 
         } catch (IOException e) {
