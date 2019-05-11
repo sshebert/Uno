@@ -6,6 +6,8 @@
 package Game.Client;
 
 
+import Game.Shared.Constants;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -20,9 +22,9 @@ public class MultiCastProtocol {
     private boolean inGroup;
     private static final String SERVER_IP_GROUP = "356.25.0.0";
 
-    MultiCastProtocol(int port, String groupAddress){
+    MultiCastProtocol(String groupAddress){
         try {
-            socket = new MulticastSocket(port);
+            socket = new MulticastSocket(Constants.PORT);
             socket.joinGroup(InetAddress.getByName(groupAddress));
             inGroup=true;
         }catch(IOException e){
@@ -30,9 +32,9 @@ public class MultiCastProtocol {
         }
     }
 
-    MultiCastProtocol(int port){
+    MultiCastProtocol(){
         try {
-            socket = new MulticastSocket(port);
+            socket = new MulticastSocket(Constants.PORT);
             inGroup=false;
         }catch(IOException e){
             e.printStackTrace();
@@ -82,9 +84,9 @@ public class MultiCastProtocol {
     I dont see us using this ever so its gonna be left blank for not and possible
     commented out later
      */
-    public void send(byte[] data, int port){
+    public void send(byte[] data){
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), port);
+            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.PORT);
             socket.send(packet);
         } catch (UnknownHostException e) {
             e.printStackTrace();
