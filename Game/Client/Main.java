@@ -49,7 +49,7 @@ public class Main {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
             multiCastProtocol = new MultiCastProtocol(multicastIP);
-            //runGame(runLobby());
+            runGame(runLobby());
         } else {
             serverIP = input;
             InetAddress hostIP = null;
@@ -76,31 +76,35 @@ public class Main {
     }
 
     public static ClientGame runLobby() {
-
+        System.out.println("Running Lobby");
         ArrayList<Player> tempList = new ArrayList<>();
         tempList.add(me);
-        UniCastProtocol lobbyUniCast = new UniCastProtocol(timeoutMillis);
+        UniCastProtocol lobbyUniCast = new UniCastProtocol();
         Player newPlayer;
         Player newPlayer2;
         boolean gameStart = false;
         int message = Constants.drawCard;
-        while (message == Constants.startGame) {
+        while (message != Constants.startGame) {
             try {
                 DeCode deCode = new DeCode(lobbyUniCast.recieve(3, 1400));
+                System.out.println("Received Uni Message");
                 newPlayer = deCode.player;
                 if (deCode.opcode == 0 && deCode.player != null) {
                     newPlayer = deCode.player;
                     if (tempList.contains(newPlayer) == false) {
                         EnCode enCode = new EnCode(multicastIP);
                         lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());
+                        System.out.println("Sent Multicast IP");
                     }
                 }
 
                 deCode = new DeCode(multiCastProtocol.receive(1400));
+                System.out.println("Received Multicast Message");
                 if (deCode.opcode == 0 && deCode.player != null) {
                     newPlayer2 = deCode.player;
                     if (newPlayer == newPlayer2) {
                         tempList.add(newPlayer);
+                        System.out.println("Just Added Player");
                     }
                 }
 
@@ -249,6 +253,7 @@ public class Main {
             int multiple = players.size() > 5 ? 4 : 2;
             return new ClientGame(players, multiple);
         }
+        return null;
     }
 
 }
