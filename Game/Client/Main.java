@@ -40,7 +40,7 @@ public class Main {
         String input = sc.nextLine();
         try {
             me = new Player(input, InetAddress.getLocalHost());
-        }catch (Exception exp){
+        } catch (Exception exp) {
             exp.printStackTrace();
         }
         System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
@@ -53,24 +53,31 @@ public class Main {
         } else {
             serverIP = input;
             InetAddress hostIP = null;
-            try{
+            try {
                 hostIP = InetAddress.getByName(serverIP);
-            }catch (Exception exp){
+            } catch (Exception exp) {
                 exp.printStackTrace();
             }
-            uniCastProtocol = new UniCastProtocol(timeoutMillis);
-            uniCastProtocol.send((new EnCode(me)).getHeader(),hostIP);
+            uniCastProtocol = new UniCastProtocol();
+            uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
             try {
-                DeCode deCode = new DeCode(uniCastProtocol.recieve(3, 1400));
-                if (deCode.opcode == 1 && deCode.ip != null) {
-                    multicastIP = deCode.ip;
-                    multiCastProtocol = new MultiCastProtocol(multicastIP);
+                byte[] test = uniCastProtocol.recieve(3, 1400);
+                if (test != null) {
+                    DeCode deCode = new DeCode(test);
+                    if (deCode.opcode == 1 && deCode.ip != null) {
+                        multicastIP = deCode.ip;
+                        System.out.println("multicast ip:" + multicastIP);
+                        multiCastProtocol = new MultiCastProtocol(multicastIP);
+                    }
                 } else {//server doesnt accept
-
+                    System.out.println("Test is null");
                 }
             } catch (InterruptedIOException exp) {
                 exp.printStackTrace();
             }
+            multiCastProtocol.send((new EnCode(me)).getHeader());
+            
+            System.out.println("Sent Player object in multicast");
             runGame((new DeCode(multiCastProtocol.receive(1400))).game);
         }
     }
@@ -152,9 +159,9 @@ public class Main {
                             if (card.getSuit().equals(Suit.Wild)) {
                                 System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                                 message = pollMessages(startTime);
-                                if(message != Constants.timeout){
+                                if (message != Constants.timeout) {
                                     playerMove = new PlayerMove(card, resolveSuit(message));
-                                }else{
+                                } else {
                                     playerMove = null;
                                 }
                             } else {
@@ -169,30 +176,26 @@ public class Main {
                             //incorrect command, exit
                             break;
                     }
-                }
-                else if(message >= Constants.minIndex) {
+                } else if (message >= Constants.minIndex) {
                     PlayerMove playerMove;
                     Card card = game.getCard(message);
                     if (card.getSuit().equals(Suit.Wild)) {
                         System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                         message = pollMessages(startTime);
-                        if(message != Constants.timeout){
+                        if (message != Constants.timeout) {
                             playerMove = new PlayerMove(card, resolveSuit(message));
-                        }else{
+                        } else {
                             playerMove = null;
                         }
                     } else {
                         playerMove = new PlayerMove(card);
                     }
                     validMove = game.playCard(playerMove);//will handle null as false
-                }
-                else if(message == Constants.exit) {
+                } else if (message == Constants.exit) {
                     //disconnect
-                }
-                else if(message == Constants.timeout) {
+                } else if (message == Constants.timeout) {
                     game.drawCard();
-                }
-                else {
+                } else {
                     game.drawCard();
                 }
 
@@ -214,7 +217,7 @@ public class Main {
         //kill thread
     }
 
-    private static int pollMessages(long startTime){
+    private static int pollMessages(long startTime) {
         boolean validCommand = false;
         int message = Constants.timeout;
         while (System.nanoTime() - startTime < Constants.timeoutNanos && message == Constants.timeout) {
