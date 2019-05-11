@@ -84,6 +84,8 @@ public class Main {
         ClientGame game = generateGame(players);
         //send game
 
+
+
     }
 
     public static void runGame(ClientGame game) {
@@ -113,10 +115,25 @@ public class Main {
                 //String input = sc.nextLine();
                 switch (message){
                     case Constants.drawCard:
-                        //exit
+                        Card card = game.drawCard();
+                        System.out.println("Card drawn is " + card.toString());
+                        System.out.println("Enter \"play\" to play drawn card or n to end turn");
+                        input = sc.nextLine();
+                        if (input.equals("y")) {
+                            PlayerMove playerMove;
+                            if (card.getSuit().equals(Suit.Wild)) {
+                                playerMove = new PlayerMove(card, resolveWild(sc));
+                            } else {
+                                playerMove = new PlayerMove(card);
+                            }
+                            validMove = game.playCard(playerMove);
+                        } else {
+                            //end turn
+                        }
+                        break;
                     case Constants.exit:
                         //draw
-                    case Constants.minIndex - 5:
+                    case Constants.timeout:
                         //timedout
                     default:
                         //play card
@@ -135,21 +152,7 @@ public class Main {
                     validMove = game.playCard(playerMove);
 
                 } else if (input.equals("draw")) {
-                    Card card = game.drawCard();
-                    System.out.println("Card drawn is " + card.toString());
-                    System.out.println("Enter y to play drawn card or n to end turn");
-                    input = sc.nextLine();
-                    if (input.equals("y")) {
-                        PlayerMove playerMove;
-                        if (card.getSuit().equals(Suit.Wild)) {
-                            playerMove = new PlayerMove(card, resolveWild(sc));
-                        } else {
-                            playerMove = new PlayerMove(card);
-                        }
-                        validMove = game.playCard(playerMove);
-                    } else {
-                        //end turn
-                    }
+
                 } else {
                     //incorrect command
                     game.drawCard();
