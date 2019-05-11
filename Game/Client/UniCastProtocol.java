@@ -31,6 +31,14 @@ public class UniCastProtocol {
             e.printStackTrace();
         }
     }
+    
+    UniCastProtocol() {
+        try {
+            socket = new DatagramSocket();
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
+    }
 
     public void send(byte[] data, InetAddress sendTo) {
 
