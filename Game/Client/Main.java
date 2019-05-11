@@ -6,8 +6,7 @@
 package Game.Client;
 
 import java.io.InterruptedIOException;
-import java.util.Collections;
-import java.util.List;
+import java.net.InetAddress;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -15,7 +14,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import Game.Shared.*;
 
 /**
- *
  * @author alawren3
  */
 public class Main {
@@ -23,7 +21,7 @@ public class Main {
     /**
      * @param args the command line arguments
      */
-    static int port = 2705;//random port for now
+    static int port = Constants.PORT;//random port for now
     static int timeoutMillis = 100;
     static MultiCastProtocol multiCastProtocol;
     static UniCastProtocol uniCastProtocol;
@@ -38,43 +36,57 @@ public class Main {
      */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx):");
-        serverIP = sc.nextLine();
-        uniCastProtocol = new UniCastProtocol(port,serverIP,timeoutMillis);
-        uniCastProtocol.send((new EnCode(0)).getHeader());
+        System.out.println("Enter your name:");
+        String input = sc.nextLine();
         try {
-            DeCode deCode = new DeCode(uniCastProtocol.recieve(3, 1400));
-            if(deCode.opcode == 1 && deCode.ip != null){
-                multicastIP = deCode.ip;
-                multiCastProtocol = new MultiCastProtocol(port,multicastIP);
-            }else{//server doesnt accept
-
-            }
-        }catch (InterruptedIOException exp){
+            me = new Player(input, InetAddress.getLocalHost());
+        }catch (Exception exp){
             exp.printStackTrace();
         }
-        multiCastProtocol = new MultiCastProtocol(port);
-        //runGame(runLobby());
+        System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
+        input = sc.nextLine();
+        if (input.equals("host")) {
+            System.out.println("Enter the multicast ip:");
+            multicastIP = sc.nextLine();
+            runGame(runLobby());
+        } else {
+            serverIP = input;
+            uniCastProtocol = new UniCastProtocol(port, serverIP, timeoutMillis);
+            uniCastProtocol.send((new EnCode(me, 0)).getHeader());
+            try {
+                DeCode deCode = new DeCode(uniCastProtocol.recieve(3, 1400));
+                if (deCode.opcode == 1 && deCode.ip != null) {
+                    multicastIP = deCode.ip;
+                    multiCastProtocol = new MultiCastProtocol(port, multicastIP);
+                } else {//server doesnt accept
+
+                }
+            } catch (InterruptedIOException exp) {
+                exp.printStackTrace();
+            }
+            multiCastProtocol = new MultiCastProtocol(port);
+            runGame((new DeCode(multiCastProtocol.receive(1400))).game);
+        }
     }
 
-    public static CyclicLinkedList<Player> runLobby(){
+    public static ClientGame runLobby() {
 
     }
 
-    public static void startGame(CyclicLinkedList<Player> players){
+    public static void startGame(CyclicLinkedList<Player> players) {
         ClientGame game = generateGame(players);
         //send game
 
     }
 
-    public static void runGame(ClientGame game){
+    public static void runGame(ClientGame game) {
         Scanner sc = new Scanner(System.in);
 
-        while(game.checkGameRunning()){
+        while (game.checkGameRunning()) {
             //receive game
 
 
-            if(game.checkCurrPlayer()){
+            if (game.checkCurrPlayer()) {
                 boolean validMove;
                 System.out.println("Your hand:");
                 game.getCurrPlayer().printCards();
@@ -82,33 +94,33 @@ public class Main {
                 System.out.println(game.getTopCard().toString());
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                 String input = sc.nextLine();
-                if(isNumeric(input)){
+                if (isNumeric(input)) {
                     PlayerMove playerMove;
                     Card card = game.getCard(Integer.parseInt(input));
-                    if(card.getSuit().equals(Suit.Wild)){
-                        playerMove = new PlayerMove(card,resolveWild(sc));
-                    }else{
+                    if (card.getSuit().equals(Suit.Wild)) {
+                        playerMove = new PlayerMove(card, resolveWild(sc));
+                    } else {
                         playerMove = new PlayerMove(card);
                     }
                     validMove = game.playCard(playerMove);
 
-                }else if(input.equals("draw")){
+                } else if (input.equals("draw")) {
                     Card card = game.drawCard();
                     System.out.println("Card drawn is " + card.toString());
                     System.out.println("Enter y to play drawn card or n to end turn");
                     input = sc.nextLine();
-                    if(input.equals("y")){
+                    if (input.equals("y")) {
                         PlayerMove playerMove;
-                        if(card.getSuit().equals(Suit.Wild)){
-                            playerMove = new PlayerMove(card,resolveWild(sc));
-                        }else{
+                        if (card.getSuit().equals(Suit.Wild)) {
+                            playerMove = new PlayerMove(card, resolveWild(sc));
+                        } else {
                             playerMove = new PlayerMove(card);
                         }
                         validMove = game.playCard(playerMove);
-                    }else{
+                    } else {
                         //end turn
                     }
-                }else{
+                } else {
                     //incorrect command
                     game.drawCard();
                 }
@@ -116,9 +128,9 @@ public class Main {
                 //finish turn
                 game.nextTurn();
                 //send game
-                multiCastProtocol.send((new EnCode(game, 1)).getHeader(),port );
+                multiCastProtocol.send((new EnCode(game, 1)).getHeader(), port);
 
-            }else{
+            } else {
                 System.out.println(game.getTopCard().toString() + " is top card");
                 //wait for other players turn
 
@@ -130,11 +142,11 @@ public class Main {
         System.out.println(game.getWinner().getName() + " won");
     }
 
-    private static Suit resolveWild(Scanner sc){
+    private static Suit resolveWild(Scanner sc) {
         System.out.println("Enter the name of the suit you would like:");
         String input = sc.nextLine();
         Suit suit = null;
-        switch (input){
+        switch (input) {
             case "red":
                 suit = Suit.Red;
                 break;
@@ -148,7 +160,7 @@ public class Main {
                 suit = Suit.Yellow;
                 break;
         }
-         return suit;
+        return suit;
     }
 
     private static boolean isNumeric(String str) {
@@ -156,8 +168,8 @@ public class Main {
     }
 
 
-    private static ClientGame generateGame(CyclicLinkedList<Player> players){
-        if(host) {
+    private static ClientGame generateGame(CyclicLinkedList<Player> players) {
+        if (host) {
             int multiple = players.size() > 5 ? 4 : 2;
             return new ClientGame(players, multiple);
         }
@@ -166,7 +178,7 @@ public class Main {
 
 }
 
-class ClientListener implements Runnable{
+class ClientListener implements Runnable {
 
     String helpResponse = "Commands:\n\t\"current player\" - returns name of current player\n\t";
 
@@ -175,10 +187,10 @@ class ClientListener implements Runnable{
         Scanner sc = new Scanner(System.in);
         System.out.println("Hey, I'm Robo Rob!");
         System.out.println("The main method is busy right now, so I'll be processing your requests :)");
-        while(ClientGame.getGameRunning()){
+        while (ClientGame.getGameRunning()) {
             String message = sc.nextLine();
 
-            switch (message){
+            switch (message) {
                 case "help":
                     System.out.println(helpResponse);
                     break;
