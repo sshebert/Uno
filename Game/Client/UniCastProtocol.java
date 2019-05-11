@@ -23,18 +23,10 @@ public class UniCastProtocol {
     private static DatagramPacket sender;
     private InetAddress lastReceivedAddress;
 
-    UniCastProtocol(int timeOutInMill) {
-        try {
-            socket = new DatagramSocket();
-            socket.setSoTimeout(timeOutInMill);
-        } catch (SocketException e) {
-            e.printStackTrace();
-        }
-    }
-    
     UniCastProtocol() {
         try {
-            socket = new DatagramSocket(Constants.UniPORT);
+            socket = new DatagramSocket();
+            socket.setSoTimeout(Constants.UniTimeout);
         } catch (SocketException e) {
             e.printStackTrace();
         }

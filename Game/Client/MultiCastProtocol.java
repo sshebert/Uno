@@ -31,11 +31,13 @@ public class MultiCastProtocol {
             e.printStackTrace();
         }
     }
-
-    MultiCastProtocol(){
+    
+    MultiCastProtocol(String groupAddress, int socketTimeout){
         try {
             socket = new MulticastSocket(Constants.MultiPORT);
-            inGroup=false;
+            socket.joinGroup(InetAddress.getByName(groupAddress));
+            socket.setSoTimeout(socketTimeout);
+            inGroup=true;
         }catch(IOException e){
             e.printStackTrace();
         }
