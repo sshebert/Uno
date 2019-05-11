@@ -10,7 +10,9 @@ package Game.Shared;
  * @author alawren3
  */
 public class Constants {
-    public static final int PORT = 2696;
+    public static final int UniPORT = 2696;
+    public static final int MultiPORT = 3696;
+
     public static final int MAXDATASIZE = 1000;
     public static final long timeoutNanos = 30000000000L;
 
