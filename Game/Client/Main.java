@@ -28,8 +28,9 @@ public class Main {
     static String serverIP;
     static String multicastIP;
     static Player me;
-    static Queue<String> messages = new ConcurrentLinkedQueue<>();
+    static Queue<Integer> messages = new ConcurrentLinkedQueue<>();
     static boolean host;
+    static ClientGame listenerGame;
 
     /**
      * @param args the command line arguments
@@ -48,11 +49,18 @@ public class Main {
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
+            multiCastProtocol = new MultiCastProtocol(port, multicastIP);
             runGame(runLobby());
         } else {
             serverIP = input;
-            uniCastProtocol = new UniCastProtocol(port, serverIP, timeoutMillis);
-            uniCastProtocol.send((new EnCode(me, 0)).getHeader());
+            InetAddress hostIP = null;
+            try{
+                hostIP = InetAddress.getByName(serverIP);
+            }catch (Exception exp){
+                exp.printStackTrace();
+            }
+            uniCastProtocol = new UniCastProtocol(port, timeoutMillis);
+            uniCastProtocol.send((new EnCode(me)).getHeader(),hostIP);
             try {
                 DeCode deCode = new DeCode(uniCastProtocol.recieve(3, 1400));
                 if (deCode.opcode == 1 && deCode.ip != null) {
@@ -64,7 +72,6 @@ public class Main {
             } catch (InterruptedIOException exp) {
                 exp.printStackTrace();
             }
-            multiCastProtocol = new MultiCastProtocol(port);
             runGame((new DeCode(multiCastProtocol.receive(1400))).game);
         }
     }
@@ -87,14 +94,37 @@ public class Main {
 
 
             if (game.checkCurrPlayer()) {
+                long startTime = System.nanoTime();
                 boolean validMove;
+                int message = Constants.timeout;
+                boolean validCommand = false;
+
                 System.out.println("Your hand:");
                 game.getCurrPlayer().printCards();
                 System.out.println("Top card:");
                 System.out.println(game.getTopCard().toString());
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
-                String input = sc.nextLine();
-                if (isNumeric(input)) {
+                while(System.nanoTime() - startTime < 30 && !validCommand){
+                    if(messages.size() > 0){
+                        message = messages.remove();
+                        validCommand = true;
+                    }
+                }
+                //String input = sc.nextLine();
+                switch (message){
+                    case Constants.drawCard:
+                        //exit
+                    case Constants.exit:
+                        //draw
+                    case Constants.minIndex - 5:
+                        //timedout
+                    default:
+                        //play card
+
+
+
+                }
+                if (isNumeric(message)) {
                     PlayerMove playerMove;
                     Card card = game.getCard(Integer.parseInt(input));
                     if (card.getSuit().equals(Suit.Wild)) {
@@ -128,7 +158,7 @@ public class Main {
                 //finish turn
                 game.nextTurn();
                 //send game
-                multiCastProtocol.send((new EnCode(game, 1)).getHeader(), port);
+                multiCastProtocol.send((new EnCode(game)).getHeader(), port);
 
             } else {
                 System.out.println(game.getTopCard().toString() + " is top card");
@@ -140,6 +170,7 @@ public class Main {
             }
         }
         System.out.println(game.getWinner().getName() + " won");
+        //kill thread
     }
 
     private static Suit resolveWild(Scanner sc) {
@@ -175,7 +206,12 @@ public class Main {
         }
     }
 
+    private static String parseCommand(){
 
+
+
+
+    }
 }
 
 class ClientListener implements Runnable {
@@ -187,7 +223,7 @@ class ClientListener implements Runnable {
         Scanner sc = new Scanner(System.in);
         System.out.println("Hey, I'm Robo Rob!");
         System.out.println("The main method is busy right now, so I'll be processing your requests :)");
-        while (ClientGame.getGameRunning()) {
+        while (true) {
             String message = sc.nextLine();
 
             switch (message) {

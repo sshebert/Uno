@@ -19,26 +19,22 @@ public class UniCastProtocol {
     private static DatagramSocket socket;
     private static DatagramPacket receiver;
     private static DatagramPacket sender;
-    private static InetAddress serverAddress;
     private static int port;
 
-    UniCastProtocol(int port, String address, int timeOutInMill){
+    UniCastProtocol(int port, int timeOutInMill){
         try {
             socket = new DatagramSocket();
             socket.setSoTimeout(timeOutInMill);
-            serverAddress = InetAddress.getByName(address);
             this.port = port;
         } catch (SocketException e) {
-            e.printStackTrace();
-        } catch (UnknownHostException e) {
             e.printStackTrace();
         }
     }
 
-    public void send(byte[] data){
+    public void send(byte[] data, InetAddress sendTo){
 
         try {
-            sender = new DatagramPacket(data,data.length,serverAddress,port);
+            sender = new DatagramPacket(data,data.length,sendTo,port);
             sender.setData(data);
             sender.setPort(data.length);
             socket.send(sender);
