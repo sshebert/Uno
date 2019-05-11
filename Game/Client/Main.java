@@ -10,7 +10,7 @@ import java.net.InetAddress;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
+import java.util.ArrayList;
 import Game.Shared.*;
 
 /**
@@ -75,10 +75,51 @@ public class Main {
         }
     }
 
-    /*public static ClientGame runLobby() {
+    public static ClientGame runLobby() {
 
-    }*/
+        ArrayList<Player> tempList = new ArrayList<>();
+        tempList.add(me);
+        UniCastProtocol lobbyUniCast = new UniCastProtocol(timeoutMillis);
+        Player newPlayer;
+        Player newPlayer2;
+        boolean gameStart = false;
+        int message = Constants.drawCard;
+        while (message == Constants.startGame) {
+            try {
+                DeCode deCode = new DeCode(lobbyUniCast.recieve(3, 1400));
+                newPlayer = deCode.player;
+                if (deCode.opcode == 0 && deCode.player != null) {
+                    newPlayer = deCode.player;
+                    if (tempList.contains(newPlayer) == false) {
+                        EnCode enCode = new EnCode(multicastIP);
+                        lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());
+                    }
+                }
 
+                deCode = new DeCode(multiCastProtocol.receive(1400));
+                if (deCode.opcode == 0 && deCode.player != null) {
+                    newPlayer2 = deCode.player;
+                    if (newPlayer == newPlayer2) {
+                        tempList.add(newPlayer);
+                    }
+                }
+
+            } catch (InterruptedIOException exp) {
+                exp.printStackTrace();
+            }
+
+            if (messages.size() > 0) {
+                message = messages.remove();
+
+            }
+        }
+        if (tempList.size() > 1) {
+            CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
+            return generateGame(playerList);
+
+        }
+        return null;
+    }
 
     public static void runGame(ClientGame game) {
         while (game.checkGameRunning()) {
@@ -223,7 +264,6 @@ class ClientListener implements Runnable {
         System.out.println("The main method is busy right now, so I'll be processing your requests :)");
         while (true) {
             String message = sc.nextLine();
-
             switch (message) {
                 case "help":
                     System.out.println(helpResponse);
