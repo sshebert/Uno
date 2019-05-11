@@ -20,6 +20,7 @@ public class UniCastProtocol {
     private static DatagramPacket receiver;
     private static DatagramPacket sender;
     private static int port;
+    private InetAddress lastReceivedAddress;
 
     UniCastProtocol(int port, int timeOutInMill) {
         try {
@@ -55,6 +56,7 @@ public class UniCastProtocol {
             byte[] data = new byte[receiver.getLength()];
             ByteBuffer bb = ByteBuffer.wrap(receiver.getData());
             bb.get(data);
+            lastReceivedAddress = receiver.getAddress();
             return data;
         } catch (SocketTimeoutException e) {
             count++;
@@ -67,6 +69,18 @@ public class UniCastProtocol {
             return null;
         }
 
+    }
+
+    public int getPort() {
+        return receiver.getPort();
+    }
+
+    public String getAddress() {
+        return receiver.getAddress().getHostName();
+    }
+
+    public InetAddress getLastReceivedAddress() {
+        return lastReceivedAddress;
     }
 
 }
