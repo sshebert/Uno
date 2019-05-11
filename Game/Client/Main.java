@@ -1,3 +1,4 @@
+
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
@@ -82,7 +83,7 @@ public class Main {
         }
     }
 
-    public static ClientGame runLobby() {
+   public static ClientGame runLobby() {
         System.out.println("Running Lobby");
         ArrayList<Player> tempList = new ArrayList<>();
         tempList.add(me);
@@ -98,6 +99,7 @@ public class Main {
                 newPlayer = deCode.player;
                 if (deCode.opcode == 0 && deCode.player != null) {
                     newPlayer = deCode.player;
+                    System.out.println(newPlayer.getName());
                     if (tempList.contains(newPlayer) == false) {
                         EnCode enCode = new EnCode(multicastIP);
                         lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());
@@ -108,10 +110,12 @@ public class Main {
                 deCode = new DeCode(multiCastProtocol.receive(1400));
                 System.out.println("Received Multicast Message");
                 if (deCode.opcode == 0 && deCode.player != null) {
+                    System.out.println("correct opcode");
                     newPlayer2 = deCode.player;
-                    if (newPlayer == newPlayer2) {
+                    if (newPlayer.getInetAddress().equals(newPlayer2.getInetAddress())) {
+                        System.out.println("equals previous player");
                         tempList.add(newPlayer);
-                        System.out.println("Just Added Player");
+                        System.out.println("Just Added Player " + newPlayer.getName());
                     }
                 }
 
