@@ -30,6 +30,7 @@ public class Main {
     static Queue<Integer> messages = new ConcurrentLinkedQueue<>();
     static boolean host;
     static ClientGame listenerGame;
+    static Thread listenerThread;
 
     /**
      * @param args the command line arguments
@@ -45,6 +46,9 @@ public class Main {
         }
         System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
         input = sc.nextLine();
+        ClientListener clientListener = new ClientListener();
+        listenerThread = new Thread(clientListener);
+        listenerThread.start();
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
