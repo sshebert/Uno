@@ -1,7 +1,8 @@
 package Game.Shared;
 
+import java.io.Serializable;
 import java.util.Collection;
-public class CyclicLinkedList<T> {
+public class CyclicLinkedList<T> implements Serializable{
 	private boolean leftToRight;
 	private CLLNode<T> root;//only used in the constructor
 	private CLLNode<T> current;

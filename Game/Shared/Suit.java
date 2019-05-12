@@ -2,7 +2,9 @@
 
 package Game.Shared;
 
-public enum Suit {
+import java.io.Serializable;
+
+public enum Suit implements Serializable{
     Red(0),
     Green(1),
     Yellow(2),

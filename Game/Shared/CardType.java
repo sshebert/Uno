@@ -2,8 +2,10 @@
 
 package Game.Shared;
 
+import java.io.Serializable;
 
-public enum CardType {
+
+public enum CardType implements Serializable{
     Zero(0),
     One(1),
     Two(2),
