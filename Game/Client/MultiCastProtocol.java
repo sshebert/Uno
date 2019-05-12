@@ -25,6 +25,7 @@ public class MultiCastProtocol {
     private boolean inGroup;
     private static String SERVER_IP_GROUP;
     private static final Lock lock = new ReentrantLock();
+    private boolean lastAddressReceivedFromMe = false;
 
     MultiCastProtocol(String groupAddress){
         try {
@@ -71,6 +72,11 @@ public class MultiCastProtocol {
             socket.setSoTimeout(timeOut);
             DatagramPacket packet = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(packet);
+            if(packet.getAddress().equals(InetAddress.getLocalHost().getAddress())){
+                lastAddressReceivedFromMe = true;
+            }else{
+                lastAddressReceivedFromMe = false;
+            }
             byte[] data = new byte[packet.getLength()];
             ByteBuffer bb = ByteBuffer.wrap(packet.getData());
             bb.get(data);

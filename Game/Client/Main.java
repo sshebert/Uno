@@ -200,6 +200,12 @@ public class Main {
         }
         return null;
     }
+    
+    public static void printInfo(ClientGame game){
+        System.out.println(game.getTopCard().toString() + " is top card");
+        game.getCurrPlayer().printCards();
+        //print out all players cards
+    }
 
     public static void runGame(ClientGame game) {
         System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
@@ -212,6 +218,7 @@ public class Main {
                 int message;
 
                 //print out all info
+                printInfo(game);
                 System.out.println(game.getTopCard().toString() + " is top card");
                 game.getCurrPlayer().printCards();
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
@@ -286,7 +293,10 @@ public class Main {
                 //receive game
                 byte[] gameData = multiCastProtocol.receive(7000, 30000);
                 
-                if(gameData != null){
+                if(multiCastProtocol.getReceivedFromMe()){
+                    //received my own game packet
+                }
+                else if(gameData != null){
                     DeCode deCode = new DeCode(gameData);
                     System.out.println("just received game");
                     game = deCode.game;
