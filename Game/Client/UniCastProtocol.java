@@ -17,7 +17,7 @@ import java.nio.ByteBuffer;
  * @author alawren3
  */
 public class UniCastProtocol {
-
+    private static Constants C = new Constants();
     private static DatagramSocket socket;
     private static DatagramPacket receiver;
     private static DatagramPacket sender;
@@ -25,8 +25,8 @@ public class UniCastProtocol {
 
     UniCastProtocol() {
         try {
-            socket = new DatagramSocket(Constants.UniPORT);
-            socket.setSoTimeout(Constants.UniTimeout);
+            socket = new DatagramSocket(C.UniPORT);
+            socket.setSoTimeout(C.UniTimeout);
         } catch (SocketException e) {
             e.printStackTrace();
         }
@@ -35,7 +35,7 @@ public class UniCastProtocol {
     public void send(byte[] data, InetAddress sendTo) {
 
         try {
-            sender = new DatagramPacket(data, data.length, sendTo, Constants.UniPORT);
+            sender = new DatagramPacket(data, data.length, sendTo, C.UniPORT);
             socket.send(sender);
 
         } catch (IOException e) {

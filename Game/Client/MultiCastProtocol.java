@@ -19,7 +19,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author alawren3
  */
 public class MultiCastProtocol {
-
+    
+    private static Constants C = new Constants();
     private MulticastSocket socket;
     private boolean inGroup;
     private static String SERVER_IP_GROUP;
@@ -28,9 +29,9 @@ public class MultiCastProtocol {
     MultiCastProtocol(String groupAddress){
         try {
             SERVER_IP_GROUP = groupAddress;
-            socket = new MulticastSocket(Constants.MultiPORT);
+            socket = new MulticastSocket(C.MultiPORT);
             socket.joinGroup(InetAddress.getByName(groupAddress));
-            socket.setSoTimeout(Constants.MultiTimeout);
+            socket.setSoTimeout(C.MultiTimeout);
             inGroup=true;
         }catch(IOException e){
             e.printStackTrace();
@@ -88,7 +89,7 @@ public class MultiCastProtocol {
     public void send(byte[] data){
         lock.lock();
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.MultiPORT);
+            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), C.MultiPORT);
             socket.send(packet);
         } catch (UnknownHostException e) {
             e.printStackTrace();

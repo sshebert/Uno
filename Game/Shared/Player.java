@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class Player implements Serializable {
+    private static Constants C = new Constants();
     private ArrayList<Card> hand;
     private Card lastDrewCard;
     private String name;
@@ -25,7 +26,7 @@ public class Player implements Serializable {
     }
 
     public Card getCard(int index) {
-        index += Constants.minIndex;
+        index += C.minIndex;
         return hand.get(index);
     }
 
@@ -39,7 +40,7 @@ public class Player implements Serializable {
     }
 
     public void printCards() {
-        int count = Constants.minIndex;
+        int count = C.minIndex;
         for (Card c : hand) {
             System.out.println(count + ") " + c.toString());
             count++;

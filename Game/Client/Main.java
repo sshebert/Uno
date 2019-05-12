@@ -24,6 +24,7 @@ public class Main {
     static int timeoutMillis = 100;
     static MultiCastProtocol multiCastProtocol;
     static UniCastProtocol uniCastProtocol;
+    private static Constants C = new Constants();
     static String serverIP;
     static String multicastIP;
     static Player me;
@@ -89,7 +90,7 @@ public class Main {
             System.out.println("Waiting for messages");
             while (System.nanoTime() - start < 12000000000L) {
                 System.out.println(System.nanoTime() - start);
-                byte[] tempbyte = multiCastProtocol.receive(7000, Constants.MultiTimeout);
+                byte[] tempbyte = multiCastProtocol.receive(7000, C.MultiTimeout);
                 if (tempbyte != null) {
                     DeCode dec = new DeCode(tempbyte);
                     if (dec.opcode == 3) {
@@ -116,10 +117,10 @@ public class Main {
         Player newPlayer = null;
         Player newPlayer2 = null;
         long time = System.nanoTime();
-        int message = Constants.drawCard;
-        while (message != Constants.startGame) {
+        int message = C.drawCard;
+        while (message != C.startGame) {
             try {
-                if (System.nanoTime() - time > (Constants.timeoutNanos / 6L)) {
+                if (System.nanoTime() - time > (C.timeoutNanos / 6L)) {
                     time = System.nanoTime();
                     multiCastProtocol.send((new EnCode(3)).getHeader());
                     System.out.println("Just sent keep alive");
@@ -140,7 +141,7 @@ public class Main {
                     }
                 }
 
-                temp = multiCastProtocol.receive(1400, Constants.MultiTimeout);
+                temp = multiCastProtocol.receive(1400, C.MultiTimeout);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
                     System.out.println("Received Multicast Message");
@@ -196,7 +197,7 @@ public class Main {
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                 message = pollMessages(startTime);
                 //String input = sc.nextLine();
-                if (message == Constants.drawCard) {
+                if (message == C.drawCard) {
                     Card card = game.drawCard();
                     System.out.println("Card drawn is " + card.toString());
                     System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
@@ -210,7 +211,7 @@ public class Main {
                             if (card.getSuit().equals(Suit.Wild)) {
                                 System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                                 message = pollMessages(startTime);
-                                if (message != Constants.timeout) {
+                                if (message != C.timeout) {
                                     playerMove = new PlayerMove(card, resolveSuit(message));
                                 } else {
                                     playerMove = null;
@@ -227,13 +228,13 @@ public class Main {
                             //incorrect command, exit
                             break;
                     }
-                } else if (message >= Constants.minIndex) {
+                } else if (message >= C.minIndex) {
                     PlayerMove playerMove;
                     Card card = game.getCard(message);
                     if (card.getSuit().equals(Suit.Wild)) {
                         System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                         message = pollMessages(startTime);
-                        if (message != Constants.timeout) {
+                        if (message != C.timeout) {
                             playerMove = new PlayerMove(card, resolveSuit(message));
                         } else {
                             playerMove = null;
@@ -242,9 +243,9 @@ public class Main {
                         playerMove = new PlayerMove(card);
                     }
                     validMove = game.playCard(playerMove);//will handle null as false
-                } else if (message == Constants.exit) {
+                } else if (message == C.exit) {
                     //disconnect
-                } else if (message == Constants.timeout) {
+                } else if (message == C.timeout) {
                     game.drawCard();
                 } else {
                     game.drawCard();
@@ -279,8 +280,8 @@ public class Main {
 
     private static int pollMessages(long startTime) {
         boolean validCommand = false;
-        int message = Constants.timeout;
-        while (System.nanoTime() - startTime < Constants.timeoutNanos && message == Constants.timeout) {
+        int message = C.timeout;
+        while (System.nanoTime() - startTime < C.timeoutNanos && message == C.timeout) {
             if (messages.size() > 0) {
                 message = messages.remove();
             }
