@@ -123,7 +123,7 @@ public class CyclicLinkedList<T> implements Serializable{
 	}
 	
 	//used to store data
-	private class CLLNode<S extends T> {
+	private class CLLNode<S extends T> implements Serializable{
 		public S data;
 		private CLLNode<S> left;
 		private CLLNode<S> right;

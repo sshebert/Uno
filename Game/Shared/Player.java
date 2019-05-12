@@ -26,7 +26,7 @@ public class Player implements Serializable {
     }
 
     public Card getCard(int index) {
-        index += C.minIndex;
+        index -= C.minIndex;
         return hand.get(index);
     }
 
