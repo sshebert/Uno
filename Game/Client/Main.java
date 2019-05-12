@@ -61,6 +61,7 @@ public class Main {
             }
             uniCastProtocol = new UniCastProtocol();
             uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
+            System.out.println("Sent unicast request");
             try {
                 byte[] test = uniCastProtocol.recieve(3, 1400);
                 if (test != null) {
@@ -77,13 +78,27 @@ public class Main {
                 exp.printStackTrace();
             }
             multiCastProtocol.send((new EnCode(me)).getHeader());
-            
+
             System.out.println("Sent Player object in multicast");
-            runGame((new DeCode(multiCastProtocol.receive(1400))).game);
+
+            long start = System.nanoTime();
+            System.out.println("Waiting for messages");
+            while (System.nanoTime() - start < 12000000000L) {
+                DeCode dec = new DeCode(multiCastProtocol.receive(1400));
+                if (dec.opcode == 3) {
+                    System.out.println("Received keep alive");
+                    start = System.nanoTime();
+                } else if (dec.opcode == 2) {
+                    runGame(dec.game);
+                    return;
+                }
+
+            }
+
         }
     }
 
-   public static ClientGame runLobby() {
+    public static ClientGame runLobby() {
         System.out.println("Running Lobby");
         ArrayList<Player> tempList = new ArrayList<>();
         tempList.add(me);
@@ -91,7 +106,6 @@ public class Main {
         Player newPlayer;
         Player newPlayer2;
         boolean gameStart = false;
-        long time = System.nanoTime();
         int message = Constants.drawCard;
         while (message != Constants.startGame) {
             try {
@@ -118,9 +132,6 @@ public class Main {
                         tempList.add(newPlayer);
                         System.out.println("Just Added Player " + newPlayer.getName());
                     }
-                }
-                if(System.nanoTime()- time > (Constants.timeoutNanos/6L)){
-                    multiCastProtocol.send((new EnCode(3)).getHeader());
                 }
 
             } catch (InterruptedIOException exp) {
@@ -267,4 +278,48 @@ public class Main {
         return null;
     }
 
+}
+
+class ClientListener implements Runnable {
+
+    String helpResponse = "Commands:\n\t\"current player\" - returns name of current player\n\t";
+
+    @Override
+    public void run() {/*
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Hey, I'm Robo Rob!");
+        System.out.println("The main method is busy right now, so I'll be processing your requests :)");
+        while (true) {
+            String message = sc.nextLine();
+            switch (message) {
+                case "help":
+                    System.out.println(helpResponse);
+                    break;
+                case "current player":
+                    System.out.println(ClientGame.getCurrPlayer().getName());
+                    break;
+                case "current player hand size":
+                    System.out.println(ClientGame.getCurrPlayerHandSize());
+                    break;
+                case "my cards":
+                    ClientGame.getMyPlayer().printCards();
+                    break;
+                case "my hand size":
+                    System.out.println(ClientGame.getMyPlayer().getHandLength());
+                    break;
+                case "top card":
+                    System.out.println(ClientGame.getTopCard().toString());
+                    break;
+                case "play card":
+                    ClientGame.getMyPlayer().printCards();
+                    System.out.println("Enter the index of the card you would like to play");
+                    String cardIndex = sc.nextLine();
+                    Main.messages.add(cardIndex);
+                    break;
+                default:
+                    System.out.println("Sorry I don't know what your talking about, type \"help\" for the list of commands");
+                    break;
+            }
+        }*/
+    }
 }
