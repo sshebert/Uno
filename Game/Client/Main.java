@@ -63,7 +63,7 @@ public class Main {
             uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
             System.out.println("Sent unicast request");
             try {
-                byte[] test = uniCastProtocol.recieve(3, 1400);
+                byte[] test = uniCastProtocol.recieve(20, 1400);
                 if (test != null) {
                     DeCode deCode = new DeCode(test);
                     if (deCode.opcode == 1 && deCode.ip != null) {
@@ -84,15 +84,18 @@ public class Main {
             long start = System.nanoTime();
             System.out.println("Waiting for messages");
             while (System.nanoTime() - start < 12000000000L) {
-                DeCode dec = new DeCode(multiCastProtocol.receive(1400));
-                if (dec.opcode == 3) {
-                    System.out.println("Received keep alive");
-                    start = System.nanoTime();
-                } else if (dec.opcode == 2) {
-                    runGame(dec.game);
-                    return;
+                System.out.println(System.nanoTime() - start);
+                byte[] tempbyte = multiCastProtocol.receive(1400);
+                if (tempbyte != null) {
+                    DeCode dec = new DeCode(tempbyte);
+                    if (dec.opcode == 3) {
+                        System.out.println("Received keep alive");
+                        start = System.nanoTime();
+                    } else if (dec.opcode == 2) {
+                        runGame(dec.game);
+                        return;
+                    }
                 }
-
             }
 
         }
