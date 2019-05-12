@@ -25,7 +25,7 @@ public class UniCastProtocol {
 
     UniCastProtocol() {
         try {
-            socket = new DatagramSocket();
+            socket = new DatagramSocket(Constants.UniPORT);
             socket.setSoTimeout(Constants.UniTimeout);
         } catch (SocketException e) {
             e.printStackTrace();
