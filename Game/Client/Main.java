@@ -257,7 +257,12 @@ public class Main {
 
                 //receive game
                 DeCode deCode = new DeCode(multiCastProtocol.receive(1400, 30000));
+                if(deCode.game != null){
                 game = deCode.game;
+                }
+                else{
+                    game.nextTurn();
+                }
             }
         }
         System.out.println(game.getWinner().getName() + " won");

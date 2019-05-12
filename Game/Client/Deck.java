@@ -5,11 +5,12 @@ package Game.Client;
 import Game.Shared.Card;
 import Game.Shared.CardType;
 import Game.Shared.Suit;
+import java.io.Serializable;
 
 import java.util.Collections;
 import java.util.LinkedList;
 
-class Deck {
+class Deck implements Serializable{
     private LinkedList<Card> drawPile;
     private LinkedList<Card> playedCardsPile;
     private Card blankWild = null;
