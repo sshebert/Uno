@@ -89,7 +89,7 @@ public class Main {
             System.out.println("Waiting for messages");
             while (System.nanoTime() - start < 12000000000L) {
                 System.out.println(System.nanoTime() - start);
-                byte[] tempbyte = multiCastProtocol.receive(1400, Constants.MultiTimeout);
+                byte[] tempbyte = multiCastProtocol.receive(7000, Constants.MultiTimeout);
                 if (tempbyte != null) {
                     DeCode dec = new DeCode(tempbyte);
                     if (dec.opcode == 3) {
@@ -171,6 +171,8 @@ public class Main {
             System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             ClientGame game = generateGame(playerList);
+            EnCode enCode = new EnCode(game);
+            System.out.println("Game Size: " + enCode.getHeader().length );
             multiCastProtocol.send((new EnCode(game).getHeader()));
             return game;
                  
@@ -189,6 +191,8 @@ public class Main {
                 int message;
 
                 //print out all info
+                System.out.println(game.getTopCard().toString() + " is top card");
+                game.getCurrPlayer().printCards();
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                 message = pollMessages(startTime);
                 //String input = sc.nextLine();
@@ -249,6 +253,7 @@ public class Main {
                 //finish turn
                 game.nextTurn();
                 //send game
+                System.out.println("just sent game");
                 multiCastProtocol.send((new EnCode(game)).getHeader());
 
             } else {
@@ -256,9 +261,12 @@ public class Main {
                 //wait for other players turn
 
                 //receive game
-                DeCode deCode = new DeCode(multiCastProtocol.receive(1400, 30000));
-                if(deCode.game != null){
-                game = deCode.game;
+                byte[] gameData = multiCastProtocol.receive(7000, 30000);
+                
+                if(gameData != null){
+                    DeCode deCode = new DeCode(gameData);
+                    System.out.println("just received game");
+                    game = deCode.game;
                 }
                 else{
                     game.nextTurn();
