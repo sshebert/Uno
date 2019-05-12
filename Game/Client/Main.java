@@ -27,7 +27,7 @@ public class Main {
     static String serverIP;
     static String multicastIP;
     static Player me;
-    static Queue<Integer> messages = new ConcurrentLinkedQueue<>();
+    static ConcurrentLinkedQueue<Integer> messages = new ConcurrentLinkedQueue<>();
     static boolean host;
     static ClientGame listenerGame;
     static Thread listenerThread;
@@ -46,13 +46,13 @@ public class Main {
         }
         System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
         input = sc.nextLine();
-        ClientListener clientListener = new ClientListener();
-        listenerThread = new Thread(clientListener);
-        listenerThread.start();
+        ClientListener clientListener = new ClientListener(messages);
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
             multiCastProtocol = new MultiCastProtocol(multicastIP);
+            listenerThread = new Thread(clientListener);
+            listenerThread.start();
             runGame(runLobby());
         } else {
             serverIP = input;
@@ -95,6 +95,8 @@ public class Main {
                         System.out.println("Received keep alive");
                         start = System.nanoTime();
                     } else if (dec.opcode == 2) {
+                        listenerThread = new Thread(clientListener);
+                        listenerThread.start();
                         runGame(dec.game);
                         return;
                     }
@@ -118,7 +120,6 @@ public class Main {
                 byte[] temp = lobbyUniCast.recieve(3, 1400);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
-
                     newPlayer = deCode.player;
                     if (deCode.opcode == 0 && deCode.player != null) {
                         newPlayer = deCode.player;

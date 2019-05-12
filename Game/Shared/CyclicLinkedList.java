@@ -1,6 +1,12 @@
 package Game.Shared;
 
 import java.util.Collection;
+/**
+ * 
+ * @author Benjamin Groman
+ *
+ * @param <T>
+ */
 public class CyclicLinkedList<T> {
 	private boolean leftToRight;
 	private CLLNode<T> root;//only used in the constructor
