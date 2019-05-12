@@ -1,6 +1,9 @@
 /*
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
 package Game.Shared;
@@ -10,11 +13,12 @@ package Game.Shared;
  * @author alawren3
  */
 public class Constants {
+
     public static final int UniPORT = 2696;
     public static final int MultiPORT = 3696;
 
     public static final int MAXDATASIZE = 1000;
-    public static final long timeoutNanos = 30000000000L;
+    public static final long timeoutNanos = 20000000000L;
     public static final int MultiTimeout = 100;
     public static final int UniTimeout = 100;
 

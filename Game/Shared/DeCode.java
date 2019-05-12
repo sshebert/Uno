@@ -20,7 +20,6 @@ public class DeCode {
     public Player player;
     public ClientGame game;
 
-
     public DeCode(byte[] unParsedData){//send player object
         ByteBuffer bb = ByteBuffer.wrap(unParsedData);
         opcode = bb.getInt();
@@ -62,10 +61,8 @@ public class DeCode {
                     exp.printStackTrace();
                 }
             }
-        }/*else if(opcode == 3){//ack
+        }else if(opcode == 3){//ack
 
-        }else if(opcode == 4){
-
-        }*/
+        }
     }
 }
