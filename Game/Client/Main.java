@@ -48,31 +48,29 @@ public class Main {
         }
         System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
         input = sc.nextLine();
-        
+
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
-          //start work by Benjamin Groman
+            //start work by Benjamin Groman
             boolean ipWorks = false;
             while (!ipWorks) {
-            	try {
-            		if(InetAddress.getByName(multicastIP).isMulticastAddress()) {
-            			ipWorks = true;
-            		}
-            		else {
-            			System.out.println("Invalid address. Please enter the multicast ip:");
-                    	multicastIP = sc.nextLine();
-            		}
-            	}
-            	catch (UnknownHostException e) {
-            		//this is handled the same as a non-multicast address
-            		System.out.println("Invalid address. Please enter the multicast ip:");
-                	multicastIP = sc.nextLine();
-            	}
+                try {
+                    if (InetAddress.getByName(multicastIP).isMulticastAddress()) {
+                        ipWorks = true;
+                    } else {
+                        System.out.println("Invalid address. Please enter the multicast ip:");
+                        multicastIP = sc.nextLine();
+                    }
+                } catch (UnknownHostException e) {
+                    //this is handled the same as a non-multicast address
+                    System.out.println("Invalid address. Please enter the multicast ip:");
+                    multicastIP = sc.nextLine();
+                }
             }
             //end work by Benjamin Groman
             multiCastProtocol = new MultiCastProtocol(multicastIP);
-            ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
+            ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
             listenerThread = new Thread(clientListener);
             listenerThread.start();
             runGame(runLobby());
@@ -105,7 +103,6 @@ public class Main {
             multiCastProtocol.send((new EnCode(me)).getHeader());
 
             //System.out.println("Sent Player object in multicast");
-
             long start = System.nanoTime();
             System.out.println("Waiting for messages");
             while (System.nanoTime() - start < 12000000000L) {
@@ -117,7 +114,7 @@ public class Main {
                         //System.out.println("Received keep alive");
                         start = System.nanoTime();
                     } else if (dec.opcode == 2) {
-                        ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
+                        ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
                         listenerThread = new Thread(clientListener);
                         listenerThread.start();
                         runGame(dec.game);
@@ -145,7 +142,7 @@ public class Main {
                     multiCastProtocol.send((new EnCode(3)).getHeader());
                     //System.out.println("Just sent keep alive");
                 }
-                
+
                 byte[] temp = lobbyUniCast.recieve(3, 1400);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
@@ -175,7 +172,6 @@ public class Main {
                         }
                     }
                 }
-                
 
             } catch (InterruptedIOException exp) {
                 //exp.printStackTrace();
@@ -186,125 +182,138 @@ public class Main {
 
             }
         }
-        
-        System.out.println(tempList.size());
+
+        //System.out.println(tempList.size());
         if (tempList.size() > 1) {
-            System.out.println(tempList.size());
+            //System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             ClientGame game = generateGame(playerList);
             EnCode enCode = new EnCode(game);
             //System.out.println("Game Size: " + enCode.getHeader().length );
             multiCastProtocol.send((new EnCode(game).getHeader()));
             return game;
-                 
+
         }
         return null;
     }
-    
-    public static void printInfo(ClientGame game){
+
+    public static void printInfo(ClientGame game) {
         System.out.println(game.getTopCard().toString() + " is top card");
         game.getCurrPlayer().printCards();
         //print out all players cards
     }
 
     public static void runGame(ClientGame game) {
-        System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
+        //System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
         while (game.checkGameRunning()) {
             //receive game
-
+            System.out.println(game.getCurrPlayer().getName() + "'s turn");
             if (game.checkCurrPlayer()) {
-                long startTime = System.nanoTime();
-                boolean validMove;
-                int message;
+                if (!game.checkSkip()) {
+                    long startTime = System.nanoTime();
+                    boolean validMove;
+                    int message;
 
-                //print out all info
-                printInfo(game);
-                //System.out.println(game.getTopCard().toString() + " is top card");
-                //ame.getCurrPlayer().printCards();
-                System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
-                message = pollMessages(startTime);
-                //String input = sc.nextLine();
-                if (message == C.drawCard) {
-                    Card card = game.drawCard();
-                    System.out.println("Card drawn is " + card.toString());
-                    System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
+                    //print out all info
+                    printInfo(game);
+                    //System.out.println(game.getTopCard().toString() + " is top card");
+                    //ame.getCurrPlayer().printCards();
+                    System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                     message = pollMessages(startTime);
-                    switch (message) {
-                        case Constants.hold:
-                            //exit
-                            break;
-                        case Constants.play:
-                            PlayerMove playerMove;
-                            if (card.getSuit().equals(Suit.Wild)) {
-                                System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
-                                message = pollMessages(startTime);
-                                if (message != C.timeout) {
-                                   
-                                    playerMove = new PlayerMove(card, resolveSuit(message));
-                                } else {
-                                    playerMove = null;
-                                }
-                            } else {
-                                playerMove = new PlayerMove(card);
-                            }
-                            validMove = game.playCard(playerMove);//will handle null as false
-                            break;
-                        case Constants.timeout:
-                            //exit
-                            break;
-                        default:
-                            //incorrect command, exit
-                            break;
-                    }
-                } else if (message >= C.minIndex) {
-                    PlayerMove playerMove;
-                    Card card = game.getCard(message);
-                    System.out.println("trying to play " + card.toString());
-                    if (card.getSuit().equals(Suit.Wild)) {
-                        System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
+                    //String input = sc.nextLine();
+                    if (message == C.drawCard) {
+                        Card card = game.drawCard();
+                        System.out.println("Card drawn is " + card.toString());
+                        System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
                         message = pollMessages(startTime);
-                        if (message != C.timeout) {
-                            playerMove = new PlayerMove(card, resolveSuit(message));
-                        } else {
-                            playerMove = null;
-                        }
-                    } else {
-                        playerMove = new PlayerMove(card);
-                    }
-                    validMove = game.playCard(playerMove);//will handle null as false
-                } else if (message == C.exit) {
-                    //disconnect
-                } else if (message == C.timeout) {
-                    game.drawCard();
-                } else {
-                    game.drawCard();
-                }
+                        switch (message) {
+                            case Constants.hold:
+                                //exit
+                                break;
+                            case Constants.play:
+                                PlayerMove playerMove;
+                                if (card.getSuit().equals(Suit.Wild)) {
+                                    System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
+                                    message = pollMessages(startTime);
+                                    if (message != C.timeout) {
 
-                //finish turn
-                game.nextTurn();
-                //send game
-                //System.out.println("just sent game");
-                multiCastProtocol.send((new EnCode(game)).getHeader());
+                                        playerMove = new PlayerMove(card, resolveSuit(message));
+                                    } else {
+                                        playerMove = null;
+                                    }
+                                } else {
+                                    playerMove = new PlayerMove(card);
+                                }
+                                validMove = game.playCard(playerMove);//will handle null as false
+                                break;
+                            case Constants.timeout:
+                                //exit
+                                break;
+                            default:
+                                //incorrect command, exit
+                                break;
+                        }
+                    } else if (message >= C.minIndex) {
+                        PlayerMove playerMove;
+                        Card card = game.getCard(message);
+                        //System.out.println("trying to play " + card.toString());
+                        if (card.getSuit().equals(Suit.Wild)) {
+                            System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
+                            message = pollMessages(startTime);
+                            if (message != C.timeout) {
+                                playerMove = new PlayerMove(card, resolveSuit(message));
+                            } else {
+                                playerMove = null;
+                            }
+                        } else {
+                            playerMove = new PlayerMove(card);
+                        }
+                        validMove = game.playCard(playerMove);//will handle null as false
+                        if (!validMove) {
+                            card = game.drawCard();
+                            System.out.println("Card drawn is " + card.toString());
+                        }
+                    } else if (message == C.exit) {
+                        //disconnect
+                    } else if (message == C.timeout) {
+                        game.drawCard();
+                    } else {
+                        game.drawCard();
+                    }
+
+                    //finish turn
+                    game.nextTurn();
+                    //send game
+                    //System.out.println("just sent game");
+                    multiCastProtocol.send((new EnCode(game)).getHeader());
+                }else{
+                    Card[] cards = game.getSkipCards();
+                    if(cards != null){
+                        for(Card card : cards){
+                            System.out.println("Skip draw card: " + card.toString());
+                        }
+                    }
+                }
 
             } else {
                 //wait for other players turn
 
                 //receive game
                 byte[] gameData = multiCastProtocol.receive(7000, 30000);
-                
-                if(multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())){
+
+                if (multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())) {
                     //received my own game packet
-                }
-                else if(gameData != null){
+                    System.out.println("Just received my own game packet");
+                } else if (gameData != null) {
                     DeCode deCode = new DeCode(gameData);
                     System.out.println(game.getTopCard().toString() + " is top card");
                     //System.out.println("just received game");
                     game = deCode.game;
-                }
-                else{
+                } else {
                     game.nextTurn();
                 }
             }
+
         }
         System.out.println(game.getWinner().getName() + " won");
         listenerThread.interrupt();
