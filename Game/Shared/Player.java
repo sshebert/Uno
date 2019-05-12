@@ -25,6 +25,7 @@ public class Player implements Serializable {
     }
 
     public Card getCard(int index) {
+        index += Constants.minIndex;
         return hand.get(index);
     }
 
@@ -38,7 +39,7 @@ public class Player implements Serializable {
     }
 
     public void printCards() {
-        int count = 0;
+        int count = Constants.minIndex;
         for (Card c : hand) {
             System.out.println(count + ") " + c.toString());
             count++;
