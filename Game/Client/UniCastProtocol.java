@@ -49,7 +49,8 @@ public class UniCastProtocol {
      */
     public byte[] recieve(int attempts, int dataSize) throws InterruptedIOException {
         int count = 0;
-
+           
+        while(count <= attempts){
         try {
             receiver = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(receiver);
@@ -63,12 +64,12 @@ public class UniCastProtocol {
             if (count >= attempts) {
                 throw new InterruptedIOException();
             }
-            return null;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-
+        }
+        return null;
     }
 
     public String getAddress() {
