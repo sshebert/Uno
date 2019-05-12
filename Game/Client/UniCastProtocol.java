@@ -62,7 +62,8 @@ public class UniCastProtocol {
         } catch (SocketTimeoutException e) {
             count++;
             if (count >= attempts) {
-                throw new InterruptedIOException();
+                //throw new InterruptedIOException();
+                return null;
             }
         } catch (IOException e) {
             e.printStackTrace();

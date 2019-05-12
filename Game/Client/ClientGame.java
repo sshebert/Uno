@@ -6,16 +6,16 @@ import java.io.Serializable;
 import java.net.InetAddress;
 
 public class ClientGame implements Serializable{
-    private static Deck deck;
-    private static boolean drawTwo = false;
-    private static boolean drawFour = false;
-    private static boolean skip = false;
-    private static Player currPlayer;
-    private static Player winner;
+    private Deck deck;
+    private boolean drawTwo = false;
+    private boolean drawFour = false;
+    private boolean skip = false;
+    private Player currPlayer;
+    private Player winner;
     private int startingHandSize = 7;
-    private static Card currCard;
-    private static CyclicLinkedList<Player> players;
-    private static boolean gameRunning = true;
+    private Card currCard;
+    private CyclicLinkedList<Player> players;
+    private boolean gameRunning = true;
 
     public ClientGame(CyclicLinkedList<Player> players, int multiple) {
         this.players = players;

@@ -170,13 +170,16 @@ public class Main {
         if (tempList.size() > 1) {
             System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
-            return generateGame(playerList);
+            ClientGame game = generateGame(playerList);
+            multiCastProtocol.send((new EnCode(game).getHeader()));
+            return game;
+                 
         }
         return null;
     }
 
     public static void runGame(ClientGame game) {
-        
+        System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
         while (game.checkGameRunning()) {
             //receive game
 
