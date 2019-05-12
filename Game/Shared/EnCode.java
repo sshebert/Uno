@@ -20,7 +20,7 @@ public class EnCode {
 
     private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-    //opcode 3
+    //opcode 3/4(uno)
     public EnCode(int ackOpCode){
         try {
             stream.write(intToBytes(ackOpCode));

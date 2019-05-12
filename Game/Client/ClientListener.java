@@ -4,7 +4,7 @@ import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import Game.Shared.Constants;
-import Game.Shared.CyclicLinkedList;
+import Game.Shared.EnCode;
 
 /**
  * Handles the gathering and basic filtering of user input.
@@ -13,15 +13,15 @@ import Game.Shared.CyclicLinkedList;
  */
 class ClientListener implements Runnable {
     ConcurrentLinkedQueue queue;
-
+    MultiCastProtocol multiCastProtocol;
 	/*for debugging
 	 *testers should also uncomment the Main class at the bottom of the file 
 	public static void main(String[] args) {
 		new ClientListener().run();
 	}
 	*/
-	ClientListener(ConcurrentLinkedQueue q){
-	    queue=q;
+	ClientListener(ConcurrentLinkedQueue q, MultiCastProtocol mcp){
+	    queue=q; multiCastProtocol=mcp;
     }
 	/**
 	 * Listens for user input, filters out obviously bad inputs,
@@ -42,6 +42,9 @@ class ClientListener implements Runnable {
                 if (message.equalsIgnoreCase("exit")) {
                     queue.add(Constants.exit);
                     exitRequested = true;
+                }
+                else if(message.equals("uno")){
+                    multiCastProtocol.send(new EnCode(4).getHeader());
                 }
                 //for drawing a card
                 else if (message.equalsIgnoreCase("draw")) {
