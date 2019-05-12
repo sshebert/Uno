@@ -20,28 +20,20 @@ public class MultiCastProtocol {
 
     private MulticastSocket socket;
     private boolean inGroup;
-    private static final String SERVER_IP_GROUP = "356.25.0.0";
+    private static String SERVER_IP_GROUP;
 
     MultiCastProtocol(String groupAddress){
         try {
+            SERVER_IP_GROUP = groupAddress;
             socket = new MulticastSocket(Constants.MultiPORT);
             socket.joinGroup(InetAddress.getByName(groupAddress));
+            socket.setSoTimeout(Constants.MultiTimeout);
             inGroup=true;
         }catch(IOException e){
             e.printStackTrace();
         }
     }
-    
-    MultiCastProtocol(String groupAddress, int socketTimeout){
-        try {
-            socket = new MulticastSocket(Constants.MultiPORT);
-            socket.joinGroup(InetAddress.getByName(groupAddress));
-            socket.setSoTimeout(socketTimeout);
-            inGroup=true;
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-    }
+   
 
     public boolean joinGroup(String address){
         try {
@@ -78,7 +70,7 @@ public class MultiCastProtocol {
             bb.get(data);
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return null;
     }
