@@ -6,6 +6,8 @@
 package Game.Client;
 
 
+import Game.Shared.Constants;
+
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
@@ -18,26 +20,20 @@ public class MultiCastProtocol {
 
     private MulticastSocket socket;
     private boolean inGroup;
-    private static final String SERVER_IP_GROUP = "356.25.0.0";
+    private static String SERVER_IP_GROUP;
 
-    MultiCastProtocol(int port, String groupAddress){
+    MultiCastProtocol(String groupAddress){
         try {
-            socket = new MulticastSocket(port);
+            SERVER_IP_GROUP = groupAddress;
+            socket = new MulticastSocket(Constants.MultiPORT);
             socket.joinGroup(InetAddress.getByName(groupAddress));
+            socket.setSoTimeout(Constants.MultiTimeout);
             inGroup=true;
         }catch(IOException e){
             e.printStackTrace();
         }
     }
-
-    MultiCastProtocol(int port){
-        try {
-            socket = new MulticastSocket(port);
-            inGroup=false;
-        }catch(IOException e){
-            e.printStackTrace();
-        }
-    }
+   
 
     public boolean joinGroup(String address){
         try {
@@ -74,7 +70,7 @@ public class MultiCastProtocol {
             bb.get(data);
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         return null;
     }
@@ -82,9 +78,9 @@ public class MultiCastProtocol {
     I dont see us using this ever so its gonna be left blank for not and possible
     commented out later
      */
-    public void send(byte[] data, int port){
+    public void send(byte[] data){
         try {
-            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), port);
+            DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.MultiPORT);
             socket.send(packet);
         } catch (UnknownHostException e) {
             e.printStackTrace();

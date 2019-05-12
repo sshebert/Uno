@@ -20,9 +20,7 @@ public class EnCode {
 
     private final ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-    /*
-    for codes: 0, 2, 3, 4, 8, 9, 10, 12
-     */
+    //opcode 3
     public EnCode(int ackOpCode){
         try {
             stream.write(intToBytes(ackOpCode));
@@ -32,10 +30,7 @@ public class EnCode {
         }
     }
 
-    /*
-    for codes: 1
-     */
-
+    //opcode 1
     public EnCode(String ip){
         try {
             stream.write(intToBytes(1));
@@ -46,26 +41,10 @@ public class EnCode {
         }
     }
 
-    /*
-    for codes: 5, 6, 7, 11
-     */
-
-    public EnCode(Card card, int opCode){
+    //opcode 2
+    public EnCode(ClientGame game){
         try {
-            stream.write(intToBytes(opCode));
-            if (card != null) {
-                ObjectOutputStream out = new ObjectOutputStream(stream);
-                out.writeObject(card);
-            }
-        }
-        catch (IOException exp){
-            exp.printStackTrace();
-        }
-    }
-
-    public EnCode(ClientGame game, int opCode){
-        try {
-            stream.write(intToBytes(opCode));
+            stream.write(intToBytes(2));
             if (game != null) {
                 ObjectOutputStream out = new ObjectOutputStream(stream);
                 out.writeObject(game);
@@ -76,13 +55,13 @@ public class EnCode {
         }
     }
 
-    public EnCode(Boolean skip, int opCode){
+    //opcode 0
+    public EnCode(Player player){
         try {
-            stream.write(intToBytes(opCode));
-            if(skip){
-                stream.write(1);
-            }else{
-                stream.write(0);
+            stream.write(intToBytes(0));
+            if (player != null) {
+                ObjectOutputStream out = new ObjectOutputStream(stream);
+                out.writeObject(player);
             }
         }
         catch (IOException exp){
