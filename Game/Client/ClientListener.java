@@ -1,7 +1,10 @@
 package Game.Client;
 
 import java.util.Scanner;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 import Game.Shared.Constants;
+import Game.Shared.CyclicLinkedList;
 
 /**
  * Handles the gathering and basic filtering of user input.
@@ -9,6 +12,7 @@ import Game.Shared.Constants;
  *
  */
 class ClientListener implements Runnable {
+    ConcurrentLinkedQueue queue;
 
 	/*for debugging
 	 *testers should also uncomment the Main class at the bottom of the file 
@@ -16,7 +20,9 @@ class ClientListener implements Runnable {
 		new ClientListener().run();
 	}
 	*/
-	
+	ClientListener(ConcurrentLinkedQueue q){
+	    queue=q;
+    }
 	/**
 	 * Listens for user input, filters out obviously bad inputs,
 	 * and sends the remainder to the main thread.
