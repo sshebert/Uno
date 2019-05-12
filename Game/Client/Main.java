@@ -232,6 +232,7 @@ public class Main {
                                 System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                                 message = pollMessages(startTime);
                                 if (message != C.timeout) {
+                                   
                                     playerMove = new PlayerMove(card, resolveSuit(message));
                                 } else {
                                     playerMove = null;
@@ -251,6 +252,7 @@ public class Main {
                 } else if (message >= C.minIndex) {
                     PlayerMove playerMove;
                     Card card = game.getCard(message);
+                    System.out.println("trying to play " + card.toString());
                     if (card.getSuit().equals(Suit.Wild)) {
                         System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                         message = pollMessages(startTime);
@@ -295,6 +297,8 @@ public class Main {
             }
         }
         System.out.println(game.getWinner().getName() + " won");
+        listenerThread.interrupt();
+        return;
         //kill thread
     }
 
