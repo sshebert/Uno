@@ -64,18 +64,22 @@ public class MultiCastProtocol {
         return false;
     }
 
-    public byte[] receive(int dataSize){
+    public byte[] receive(int dataSize,int timeOut){
+
         try {
+            socket.setSoTimeout(timeOut);
             DatagramPacket packet = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(packet);
             byte[] data = new byte[packet.getLength()];
             ByteBuffer bb = ByteBuffer.wrap(packet.getData());
             bb.get(data);
             return data;
+        }catch(SocketTimeoutException e){
+            return null;
         } catch (IOException e) {
             //e.printStackTrace();
+            return null;
         }
-        return null;
     }
     /*
     I dont see us using this ever so its gonna be left blank for not and possible
