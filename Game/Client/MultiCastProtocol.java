@@ -25,7 +25,7 @@ public class MultiCastProtocol {
     private boolean inGroup;
     private static String SERVER_IP_GROUP;
     private static final Lock lock = new ReentrantLock();
-    private boolean lastAddressReceivedFromMe = false;
+    private InetAddress lastReceivedAddress;
 
     MultiCastProtocol(String groupAddress){
         try {
@@ -72,11 +72,7 @@ public class MultiCastProtocol {
             socket.setSoTimeout(timeOut);
             DatagramPacket packet = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(packet);
-            if(packet.getAddress().equals(InetAddress.getLocalHost().getAddress())){
-                lastAddressReceivedFromMe = true;
-            }else{
-                lastAddressReceivedFromMe = false;
-            }
+            lastReceivedAddress = packet.getAddress();
             byte[] data = new byte[packet.getLength()];
             ByteBuffer bb = ByteBuffer.wrap(packet.getData());
             bb.get(data);
@@ -87,6 +83,10 @@ public class MultiCastProtocol {
             //e.printStackTrace();
             return null;
         }
+    }
+    
+    public InetAddress getLastReceivedAddress(){
+        return lastReceivedAddress;
     }
     /*
     I dont see us using this ever so its gonna be left blank for not and possible
