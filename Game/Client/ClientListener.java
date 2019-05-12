@@ -37,42 +37,42 @@ class ClientListener implements Runnable {
             //for printing out the available commands
             if (message.equalsIgnoreCase("help")) {
             	printHelpResponse();
-            }else if(Main.messages.size() == 0) {
+            }else if(queue.size() == 0) {
                 //for terminating the client
                 if (message.equalsIgnoreCase("exit")) {
-                    Main.messages.add(Constants.exit);
+                    queue.add(Constants.exit);
                     exitRequested = true;
                 }
                 //for drawing a card
                 else if (message.equalsIgnoreCase("draw")) {
-                    Main.messages.add(Constants.drawCard);
+                    queue.add(Constants.drawCard);
                 }
                 //for declaring the color after playing a wild
                 else if (message.equalsIgnoreCase("blue")) {
-                    Main.messages.add(Constants.blue);
+                    queue.add(Constants.blue);
                 } else if (message.equalsIgnoreCase("red")) {
-                    Main.messages.add(Constants.red);
+                    queue.add(Constants.red);
                 } else if (message.equalsIgnoreCase("green")) {
-                    Main.messages.add(Constants.green);
+                    queue.add(Constants.green);
                 } else if (message.equalsIgnoreCase("yellow")) {
-                    Main.messages.add(Constants.yellow);
+                    queue.add(Constants.yellow);
                 }
                 //for selecting whether to attempt to play the card that was just picked up
                 else if (message.equalsIgnoreCase("play")) {
-                    Main.messages.add(Constants.play);
+                    queue.add(Constants.play);
                 } else if (message.equalsIgnoreCase("hold")) {
-                    Main.messages.add(Constants.hold);
+                    queue.add(Constants.hold);
                 }
                 //for starting the game
                 else if (message.equalsIgnoreCase("start") || message.equalsIgnoreCase("start game")) {
-                    Main.messages.add(Constants.startGame);
+                    queue.add(Constants.startGame);
                 }
                 //positive integers for selecting a card to play
                 //cap the size at three digits to prevent overflows in parsing
                 //having a 100 cards is possible if two decks are combined, but rare
                 //second check screens values below the minimum index, which could be negative for all this class cares
                 else if (message.matches("-?\\d{1,3}") && Integer.parseInt(message) >= Constants.minIndex) {
-                    Main.messages.add(Integer.parseInt(message));
+                    queue.add(Integer.parseInt(message));
                 }
                 //bad input provided
                 else {
