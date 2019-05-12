@@ -33,6 +33,7 @@ public class Main {
     static boolean host;
     static ClientGame listenerGame;
     static Thread listenerThread;
+    static boolean printedPlayersTurn = false;
 
     /**
      * @param args the command line arguments
@@ -198,7 +199,7 @@ public class Main {
     }
 
     public static void printInfo(ClientGame game) {
-        System.out.println(game.getTopCard().toString() + " is top card");
+        //System.out.println(game.getTopCard().toString() + " is top card");
         game.getCurrPlayer().printCards();
         //print out all players cards
     }
@@ -207,9 +208,14 @@ public class Main {
         //System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
         while (game.checkGameRunning()) {
             //receive game
-            System.out.println(game.getCurrPlayer().getName() + "'s turn");
+            if (!printedPlayersTurn) {
+                System.out.println(game.getCurrPlayer().getName() + "'s turn");
+                System.out.println(game.getTopCard().toString() + " is top card");
+            }
             if (game.checkCurrPlayer()) {
-                if (!game.checkSkip()) {
+                boolean skip = game.checkSkip();
+                //System.out.println(skip);
+                if (!skip) {
                     long startTime = System.nanoTime();
                     boolean validMove;
                     int message;
@@ -236,7 +242,6 @@ public class Main {
                                     System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                                     message = pollMessages(startTime);
                                     if (message != C.timeout) {
-
                                         playerMove = new PlayerMove(card, resolveSuit(message));
                                     } else {
                                         playerMove = null;
@@ -247,7 +252,7 @@ public class Main {
                                 validMove = game.playCard(playerMove);//will handle null as false
                                 break;
                             case Constants.timeout:
-                                //exit
+                                System.out.println("Out of time");
                                 break;
                             default:
                                 //incorrect command, exit
@@ -263,6 +268,7 @@ public class Main {
                             if (message != C.timeout) {
                                 playerMove = new PlayerMove(card, resolveSuit(message));
                             } else {
+                                System.out.println("Out of time");
                                 playerMove = null;
                             }
                         } else {
@@ -276,24 +282,29 @@ public class Main {
                     } else if (message == C.exit) {
                         //disconnect
                     } else if (message == C.timeout) {
+                        System.out.println("Out of time");
                         game.drawCard();
                     } else {
                         game.drawCard();
                     }
 
                     //finish turn
+                    
                     game.nextTurn();
                     //send game
                     //System.out.println("just sent game");
                     multiCastProtocol.send((new EnCode(game)).getHeader());
-                }else{
+                } else {
                     Card[] cards = game.getSkipCards();
-                    if(cards != null){
-                        for(Card card : cards){
+                    if (cards != null) {
+                        for (Card card : cards) {
                             System.out.println("Skip draw card: " + card.toString());
                         }
                     }
+                    game.nextTurn();
+                    multiCastProtocol.send((new EnCode(game)).getHeader());
                 }
+                System.out.println();
 
             } else {
                 //wait for other players turn
@@ -303,10 +314,13 @@ public class Main {
 
                 if (multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())) {
                     //received my own game packet
-                    System.out.println("Just received my own game packet");
+                    //System.out.println("Just received my own game packet");
+                    printedPlayersTurn = true;
                 } else if (gameData != null) {
                     DeCode deCode = new DeCode(gameData);
-                    System.out.println(game.getTopCard().toString() + " is top card");
+                   
+                    System.out.println();
+                    printedPlayersTurn = false;
                     //System.out.println("just received game");
                     game = deCode.game;
                 } else {

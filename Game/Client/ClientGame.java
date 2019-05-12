@@ -138,6 +138,7 @@ public class ClientGame implements Serializable{
                 break;
             case WildDraw:
                 resolveWildDraw(playerMove.wildSuit);
+                skip = true;
                 drawFour = true;
                 break;
             case Reverse:
