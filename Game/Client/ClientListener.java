@@ -31,6 +31,7 @@ class ClientListener implements Runnable {
 	 */
     @Override
     public void run() {
+    	try {
         Scanner sc = new Scanner(System.in);
         boolean exitRequested = false;
         while (!exitRequested) {
@@ -39,17 +40,18 @@ class ClientListener implements Runnable {
             //for printing out the available commands
             if (message.equalsIgnoreCase("help")) {
             	printHelpResponse();
-            }else if(queue.size() == 0) {
-                //for terminating the client
-                if (message.equalsIgnoreCase("exit")) {
-                    queue.add(C.exit);
-                    exitRequested = true;
-                }
-                else if(message.equals("uno")){
-                    multiCastProtocol.send(new EnCode(4).getHeader());
-                }
+            }
+            //for terminating the client
+            else if (message.equalsIgnoreCase("exit")) {
+                queue.add(C.exit);
+                exitRequested = true;
+            }
+            else if(message.equals("uno")){
+                multiCastProtocol.send(new EnCode(4).getHeader());
+            }
+            else if(queue.size() == 0) {
                 //for drawing a card
-                else if (message.equalsIgnoreCase("draw")) {
+                if (message.equalsIgnoreCase("draw")) {
                     queue.add(C.drawCard);
                 }
                 //for declaring the color after playing a wild
@@ -87,6 +89,8 @@ class ClientListener implements Runnable {
                 System.out.println("Queue is full, wait please");
             }
         }
+    	}
+        catch (Throwable e) {System.out.println("Terminating now.");}
     }
     /**
      * Prints the help message, listing all available commands.

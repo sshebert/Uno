@@ -7,6 +7,7 @@ package Game.Client;
 
 import java.io.InterruptedIOException;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -51,6 +52,25 @@ public class Main {
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
+          //start work by Benjamin Groman
+            boolean ipWorks = false;
+            while (!ipWorks) {
+            	try {
+            		if(InetAddress.getByName(multicastIP).isMulticastAddress()) {
+            			ipWorks = true;
+            		}
+            		else {
+            			System.out.println("Invalid address. Please enter the multicast ip:");
+                    	multicastIP = sc.nextLine();
+            		}
+            	}
+            	catch (UnknownHostException e) {
+            		//this is handled the same as a non-multicast address
+            		System.out.println("Invalid address. Please enter the multicast ip:");
+                	multicastIP = sc.nextLine();
+            	}
+            }
+            //end work by Benjamin Groman
             multiCastProtocol = new MultiCastProtocol(multicastIP);
             ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
             listenerThread = new Thread(clientListener);
