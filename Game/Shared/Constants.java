@@ -15,6 +15,8 @@ public class Constants {
 
     public static final int MAXDATASIZE = 1000;
     public static final long timeoutNanos = 30000000000L;
+    public static final int MultiTimeout = 100;
+    public static final int UniTimeout = 100;
 
     public static final int minIndex = 1;
     public static final int drawCard = minIndex - 1;
