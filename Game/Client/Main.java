@@ -91,6 +91,7 @@ public class Main {
         Player newPlayer;
         Player newPlayer2;
         boolean gameStart = false;
+        long time = System.nanoTime();
         int message = Constants.drawCard;
         while (message != Constants.startGame) {
             try {
@@ -117,6 +118,9 @@ public class Main {
                         tempList.add(newPlayer);
                         System.out.println("Just Added Player " + newPlayer.getName());
                     }
+                }
+                if(System.nanoTime()- time > (Constants.timeoutNanos/6L)){
+                    multiCastProtocol.send((new EnCode(3)).getHeader());
                 }
 
             } catch (InterruptedIOException exp) {
