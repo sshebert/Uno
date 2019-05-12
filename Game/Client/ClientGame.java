@@ -27,6 +27,7 @@ public class ClientGame implements Serializable{
             while (players.next() != first)
                 players.current().drawCard(deck.drawCard());
         }
+        players.next();
         deck.playFirstCard();
     }
 

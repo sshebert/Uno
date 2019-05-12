@@ -86,14 +86,14 @@ public class Main {
             }
             uniCastProtocol = new UniCastProtocol();
             uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
-            System.out.println("Sent unicast request");
+            //System.out.println("Sent unicast request");
             try {
                 byte[] test = uniCastProtocol.recieve(20, 1400);
                 if (test != null) {
                     DeCode deCode = new DeCode(test);
                     if (deCode.opcode == 1 && deCode.ip != null) {
                         multicastIP = deCode.ip;
-                        System.out.println("multicast ip:" + multicastIP);
+                        //System.out.println("multicast ip:" + multicastIP);
                         multiCastProtocol = new MultiCastProtocol(multicastIP);
                     }
                 } else {//server doesnt accept
@@ -104,7 +104,7 @@ public class Main {
             }
             multiCastProtocol.send((new EnCode(me)).getHeader());
 
-            System.out.println("Sent Player object in multicast");
+            //System.out.println("Sent Player object in multicast");
 
             long start = System.nanoTime();
             System.out.println("Waiting for messages");
@@ -114,7 +114,7 @@ public class Main {
                 if (tempbyte != null) {
                     DeCode dec = new DeCode(tempbyte);
                     if (dec.opcode == 3) {
-                        System.out.println("Received keep alive");
+                        //System.out.println("Received keep alive");
                         start = System.nanoTime();
                     } else if (dec.opcode == 2) {
                         ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
@@ -143,7 +143,7 @@ public class Main {
                 if (System.nanoTime() - time > (C.timeoutNanos / 6L)) {
                     time = System.nanoTime();
                     multiCastProtocol.send((new EnCode(3)).getHeader());
-                    System.out.println("Just sent keep alive");
+                    //System.out.println("Just sent keep alive");
                 }
                 
                 byte[] temp = lobbyUniCast.recieve(3, 1400);
@@ -156,7 +156,7 @@ public class Main {
                         if (tempList.contains(newPlayer) == false) {
                             EnCode enCode = new EnCode(multicastIP);
                             lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());
-                            System.out.println("Sent Multicast IP");
+                            //System.out.println("Sent Multicast IP");
                         }
                     }
                 }
@@ -164,12 +164,12 @@ public class Main {
                 temp = multiCastProtocol.receive(1400, C.MultiTimeout);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
-                    System.out.println("Received Multicast Message");
+                    //System.out.println("Received Multicast Message");
                     if (deCode.opcode == 0 && deCode.player != null) {
-                        System.out.println("correct opcode");
+                        //System.out.println("correct opcode");
                         newPlayer2 = deCode.player;
                         if (newPlayer.getInetAddress().equals(newPlayer2.getInetAddress())) {
-                            System.out.println("equals previous player");
+                            //System.out.println("equals previous player");
                             tempList.add(newPlayer);
                             System.out.println("Just Added Player " + newPlayer.getName());
                         }
@@ -193,12 +193,18 @@ public class Main {
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             ClientGame game = generateGame(playerList);
             EnCode enCode = new EnCode(game);
-            System.out.println("Game Size: " + enCode.getHeader().length );
+            //System.out.println("Game Size: " + enCode.getHeader().length );
             multiCastProtocol.send((new EnCode(game).getHeader()));
             return game;
                  
         }
         return null;
+    }
+    
+    public static void printInfo(ClientGame game){
+        System.out.println(game.getTopCard().toString() + " is top card");
+        game.getCurrPlayer().printCards();
+        //print out all players cards
     }
 
     public static void runGame(ClientGame game) {
@@ -212,8 +218,9 @@ public class Main {
                 int message;
 
                 //print out all info
-                System.out.println(game.getTopCard().toString() + " is top card");
-                game.getCurrPlayer().printCards();
+                printInfo(game);
+                //System.out.println(game.getTopCard().toString() + " is top card");
+                //ame.getCurrPlayer().printCards();
                 System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                 message = pollMessages(startTime);
                 //String input = sc.nextLine();
@@ -276,19 +283,22 @@ public class Main {
                 //finish turn
                 game.nextTurn();
                 //send game
-                System.out.println("just sent game");
+                //System.out.println("just sent game");
                 multiCastProtocol.send((new EnCode(game)).getHeader());
 
             } else {
-                System.out.println(game.getTopCard().toString() + " is top card");
                 //wait for other players turn
 
                 //receive game
                 byte[] gameData = multiCastProtocol.receive(7000, 30000);
                 
-                if(gameData != null){
+                if(multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())){
+                    //received my own game packet
+                }
+                else if(gameData != null){
                     DeCode deCode = new DeCode(gameData);
-                    System.out.println("just received game");
+                    System.out.println(game.getTopCard().toString() + " is top card");
+                    //System.out.println("just received game");
                     game = deCode.game;
                 }
                 else{
