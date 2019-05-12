@@ -11,6 +11,8 @@ import Game.Shared.Constants;
 import java.io.IOException;
 import java.net.*;
 import java.nio.ByteBuffer;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
@@ -21,6 +23,7 @@ public class MultiCastProtocol {
     private MulticastSocket socket;
     private boolean inGroup;
     private static String SERVER_IP_GROUP;
+    private static final Lock lock = new ReentrantLock();
 
     MultiCastProtocol(String groupAddress){
         try {
@@ -79,6 +82,7 @@ public class MultiCastProtocol {
     commented out later
      */
     public void send(byte[] data){
+        lock.lock();
         try {
             DatagramPacket packet = new DatagramPacket(data, data.length, InetAddress.getByName(SERVER_IP_GROUP), Constants.MultiPORT);
             socket.send(packet);
@@ -86,7 +90,11 @@ public class MultiCastProtocol {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+        }finally{
+            lock.unlock();
         }
+
+
     }
 
 }
