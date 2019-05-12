@@ -46,11 +46,12 @@ public class Main {
         }
         System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
         input = sc.nextLine();
-        ClientListener clientListener = new ClientListener(messages);
+        
         if (input.equals("host")) {
             System.out.println("Enter the multicast ip:");
             multicastIP = sc.nextLine();
             multiCastProtocol = new MultiCastProtocol(multicastIP);
+            ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
             listenerThread = new Thread(clientListener);
             listenerThread.start();
             runGame(runLobby());
@@ -88,13 +89,14 @@ public class Main {
             System.out.println("Waiting for messages");
             while (System.nanoTime() - start < 12000000000L) {
                 System.out.println(System.nanoTime() - start);
-                byte[] tempbyte = multiCastProtocol.receive(1400);
+                byte[] tempbyte = multiCastProtocol.receive(1400, Constants.MultiTimeout);
                 if (tempbyte != null) {
                     DeCode dec = new DeCode(tempbyte);
                     if (dec.opcode == 3) {
                         System.out.println("Received keep alive");
                         start = System.nanoTime();
                     } else if (dec.opcode == 2) {
+                        ClientListener clientListener = new ClientListener(messages,multiCastProtocol);
                         listenerThread = new Thread(clientListener);
                         listenerThread.start();
                         runGame(dec.game);
@@ -117,6 +119,12 @@ public class Main {
         int message = Constants.drawCard;
         while (message != Constants.startGame) {
             try {
+                if (System.nanoTime() - time > (Constants.timeoutNanos / 6L)) {
+                    time = System.nanoTime();
+                    multiCastProtocol.send((new EnCode(3)).getHeader());
+                    System.out.println("Just sent keep alive");
+                }
+                
                 byte[] temp = lobbyUniCast.recieve(3, 1400);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
@@ -132,7 +140,7 @@ public class Main {
                     }
                 }
 
-                temp = multiCastProtocol.receive(1400);
+                temp = multiCastProtocol.receive(1400, Constants.MultiTimeout);
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
                     System.out.println("Received Multicast Message");
@@ -146,11 +154,7 @@ public class Main {
                         }
                     }
                 }
-                if (System.nanoTime() - time > (Constants.timeoutNanos / 6L)) {
-                    time = System.nanoTime();
-                    multiCastProtocol.send((new EnCode(3)).getHeader());
-                    System.out.println("Just sent keep alive");
-                }
+                
 
             } catch (InterruptedIOException exp) {
                 //exp.printStackTrace();
@@ -161,15 +165,18 @@ public class Main {
 
             }
         }
+        
+        System.out.println(tempList.size());
         if (tempList.size() > 1) {
+            System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             return generateGame(playerList);
-
         }
         return null;
     }
 
     public static void runGame(ClientGame game) {
+        
         while (game.checkGameRunning()) {
             //receive game
 
@@ -246,7 +253,7 @@ public class Main {
                 //wait for other players turn
 
                 //receive game
-                DeCode deCode = new DeCode(multiCastProtocol.receive(1400));
+                DeCode deCode = new DeCode(multiCastProtocol.receive(1400, 30000));
                 game = deCode.game;
             }
         }
@@ -289,11 +296,7 @@ public class Main {
     }
 
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
-        if (host) {
-            int multiple = players.size() > 5 ? 4 : 2;
-            return new ClientGame(players, multiple);
-        }
-        return null;
+        int multiple = players.size() > 5 ? 4 : 2;
+        return new ClientGame(players, multiple);
     }
-
 }
