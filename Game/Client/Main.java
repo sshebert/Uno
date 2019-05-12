@@ -134,7 +134,7 @@ public class Main {
 
                 temp = multiCastProtocol.receive(1400);
                 if (temp != null) {
-                    DeCode deCode = new DeCode(multiCastProtocol.receive(1400));
+                    DeCode deCode = new DeCode(temp);
                     System.out.println("Received Multicast Message");
                     if (deCode.opcode == 0 && deCode.player != null) {
                         System.out.println("correct opcode");
