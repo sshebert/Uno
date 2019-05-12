@@ -97,6 +97,7 @@ class ClientListener implements Runnable {
     	System.out.println("start, start game - start the game if you are the host");
     	System.out.println("help - print this message");
     	System.out.println("exit - quit the game");
+    	System.out.println("uno - attempt to call someone out when they have just one card");
     	System.out.println("draw - draw a card");
     	System.out.println("play - play the card that was just drawn");
     	System.out.println("hold - don't play the card that was just drawn");
