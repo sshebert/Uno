@@ -36,7 +36,7 @@ public class Main {
     static ClientGame listenerGame;
     static Thread listenerThread;
     static boolean printedPlayersTurn = false;
-    static String filePath = "C:\\Users\\samue\\Desktop\\unoSave.txt";
+    static String filePath = "..\\unoSave.txt";
 
     /**
      * @param args the command line arguments
@@ -56,6 +56,8 @@ public class Main {
                 }else{
                     runGame(game);
                 }
+            }else{
+                System.out.println("Save file does not exist");
             }
         } else {
             System.out.println("Enter your name:");
@@ -90,6 +92,11 @@ public class Main {
                 }
                 //end work by Benjamin Groman
                 multiCastProtocol = new MultiCastProtocol(multicastIP);
+                if (saveToDisk(key, multicastIP)) {
+                    System.out.println("Info saved to disk");
+                } else {
+                    System.out.println("Failed to save to disk");
+                }
                 ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
                 listenerThread = new Thread(clientListener);
                 listenerThread.start();
@@ -254,6 +261,10 @@ public class Main {
                     System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
                     message = pollMessages(startTime);
                     //String input = sc.nextLine();
+                    if (message == C.exit){
+                        listenerThread.interrupt();
+                        return;
+                    }
                     if (message == C.drawCard) {
                         Card card = game.drawCard();
                         System.out.println("Card drawn is " + card.toString());
@@ -357,6 +368,7 @@ public class Main {
                         game.getCurrPlayer().setKill(true);
                     }
                     game.nextTurn();
+                    multiCastProtocol.send((new EnCode(game)).getHeader());
                 }
             }
 
