@@ -13,11 +13,20 @@ public class Player implements Serializable {
     private Card lastDrewCard;
     private String name;
     private InetAddress inetAddress;
+    private boolean kill = false;
 
     public Player(String name, InetAddress inetAddress) {
         hand = new ArrayList<>();
         this.name = name;
         this.inetAddress = inetAddress;
+    }
+
+    public void setKill(boolean b){
+        kill = b;
+    }
+
+    public boolean getKill(){
+        return kill;
     }
 
     public boolean playCard(Card playCard) {

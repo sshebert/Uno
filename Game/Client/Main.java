@@ -36,7 +36,7 @@ public class Main {
     static ClientGame listenerGame;
     static Thread listenerThread;
     static boolean printedPlayersTurn = false;
-    static String filePath = "C:\\Users\\samue\\Desktop\\";
+    static String filePath = "C:\\Users\\samue\\Desktop\\unoSave.txt";
 
     /**
      * @param args the command line arguments
@@ -50,7 +50,12 @@ public class Main {
                 key = data[0];
                 multicastIP = data[1];
                 multiCastProtocol = new MultiCastProtocol(multicastIP);
-
+                ClientGame game = new DeCode(multiCastProtocol.receive(7000,60000)).game;
+                if(game == null){
+                    System.out.println("Game is no longer active");
+                }else{
+                    runGame(game);
+                }
             }
         } else {
             System.out.println("Enter your name:");
@@ -234,6 +239,7 @@ public class Main {
                 System.out.println(game.getTopCard().toString() + " is top card");
             }
             if (game.checkCurrPlayer()) {
+                game.getCurrPlayer().setKill(false);
                 boolean skip = game.checkSkip();
                 //System.out.println(skip);
                 if (!skip) {
@@ -345,6 +351,11 @@ public class Main {
                     //System.out.println("just received game");
                     game = deCode.game;
                 } else {
+                    if(game.getCurrPlayer().getKill()){
+                        game.removePlayer(game.getCurrPlayer());
+                    }else{
+                        game.getCurrPlayer().setKill(true);
+                    }
                     game.nextTurn();
                 }
             }
@@ -408,7 +419,7 @@ public class Main {
     }
 
     private static boolean saveToDisk(String key, String multicastip){
-        File file = new File(filePath + "unoSave.txt");
+        File file = new File(filePath);
         if(file.exists()){
             file.delete();
         }
@@ -426,7 +437,7 @@ public class Main {
     }
 
     private static String[] readFromDisk(){
-        File file = new File(filePath + "unoSave.txt");
+        File file = new File(filePath);
         if(!file.exists()){
             return null;
         }
@@ -435,6 +446,7 @@ public class Main {
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String key = bufferedReader.readLine();
             String multicastip = bufferedReader.readLine();
+            bufferedReader.close();
             String[] out = {key,multicastip};
             return out;
         }catch (IOException exp) {

@@ -51,6 +51,10 @@ public class ClientGame implements Serializable{
         return currPlayer;
     }
 
+    public void removePlayer(Player p){
+        players.remove(p);
+    }
+
     public boolean checkSkip() {
         if(skip){
             skip = false;
