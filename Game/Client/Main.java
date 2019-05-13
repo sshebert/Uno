@@ -43,6 +43,13 @@ public class Main {
      */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        System.out.println("Enter your name:");
+        String input = sc.nextLine();
+        try {
+            me = new Player(input, InetAddress.getLocalHost());
+        } catch (Exception exp) {
+            exp.printStackTrace();
+        }
         System.out.println("Type \"load\" to load into game or \"lobby\" to join/host a lobby");
         if (sc.nextLine().equals("load")) {
             String[] data = readFromDisk();
@@ -60,13 +67,6 @@ public class Main {
                 System.out.println("Save file does not exist");
             }
         } else {
-            System.out.println("Enter your name:");
-            String input = sc.nextLine();
-            try {
-                me = new Player(input, InetAddress.getLocalHost());
-            } catch (Exception exp) {
-                exp.printStackTrace();
-            }
             key = generatePrivateKey(16);
             System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
             input = sc.nextLine();
