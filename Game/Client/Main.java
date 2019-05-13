@@ -368,6 +368,8 @@ public class Main {
                         //System.out.println("just received game");
                         game = deCode.game;
                     }else if(deCode.opcode == 4){//receieved uno
+                        System.out.println("Uno called");
+                        printedPlayersTurn = true;
                         //do nothing
                     }
                 } else {
@@ -390,16 +392,20 @@ public class Main {
 
     private static int pollMessages(long startTime, ClientGame game) {
         int message = C.timeout;
-        byte[] unoCheck = multiCastProtocol.receive(7000,10);
-        if(unoCheck != null){
-            DeCode d = new DeCode(unoCheck);
-            if(d.opcode == 4){
-                game.resolveUno(multiCastProtocol.getLastReceivedAddress());
-            }
-        }
         while (System.nanoTime() - startTime < C.timeoutNanos && message == C.timeout) {
             if (messages.size() > 0) {
                 message = messages.remove();
+            }
+            byte[] unoCheck = multiCastProtocol.receive(7000,10);
+            if(unoCheck != null){
+                DeCode d = new DeCode(unoCheck);
+                if(d.opcode == 4){
+                    if(game.resolveUno(multiCastProtocol.getLastReceivedAddress())){
+                        System.out.println("Uno was legit");
+                    }else{
+                        System.out.println("Uno was not legit");
+                    }
+                }
             }
         }
         return message;
@@ -429,7 +435,8 @@ public class Main {
     }
 
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
-        int multiple = players.size() > 5 ? 4 : 2;
+        //int multiple = players.size() > 5 ? 4 : 2;
+        int multiple = 2;
         return new ClientGame(players, multiple);
     }
 
