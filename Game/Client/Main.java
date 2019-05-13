@@ -362,11 +362,14 @@ public class Main {
                     printedPlayersTurn = true;
                 } else if (gameData != null) {
                     DeCode deCode = new DeCode(gameData);
-                   
-                    System.out.println();
-                    printedPlayersTurn = false;
-                    //System.out.println("just received game");
-                    game = deCode.game;
+                    if(deCode.opcode == 2) {// received game
+                        System.out.println();
+                        printedPlayersTurn = false;
+                        //System.out.println("just received game");
+                        game = deCode.game;
+                    }else if(deCode.opcode == 4){//receieved uno
+                        //do nothing
+                    }
                 } else {
                     if(game.getCurrPlayer().getKill()){
                         game.removePlayer(game.getCurrPlayer());
