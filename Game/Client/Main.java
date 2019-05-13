@@ -435,8 +435,7 @@ public class Main {
     }
 
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
-        //int multiple = players.size() > 5 ? 4 : 2;
-        int multiple = 2;
+        int multiple = players.size() > 5 ? 2 : 1;
         return new ClientGame(players, multiple);
     }
 
