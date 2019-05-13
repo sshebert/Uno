@@ -87,6 +87,48 @@ public class ClientGame implements Serializable{
         return cards;
     }
 
+    public boolean callUno(Player player){
+        if(player.equals(currPlayer)){
+            if(currPlayer.getHandLength() <= 2){
+                currPlayer.setUnoSafe(true);
+                return true;
+            }else{
+                drawCard();
+                drawCard();
+                currPlayer.setUnoSafe(false);
+                return false;
+            }
+        }else{
+            boolean b = false;
+            for(int i = 0; i < players.size(); i++){
+                players.next();
+                if(players.current().getHandLength() == 1){
+                    players.current().drawCard(deck.drawCard());
+                    players.current().drawCard(deck.drawCard());
+                    b = true;
+                }
+            }
+            if(!b){
+                players.seek(player);
+                players.current().drawCard(deck.drawCard());
+                players.current().drawCard(deck.drawCard());
+                players.seek(currPlayer);
+            }
+            return b;
+        }
+    }
+
+    public boolean resolveUno(InetAddress playerInet){
+        Player out = null;
+        for(int i = 0; i < players.size(); i++){
+            players.next();
+            if(players.current().getInetAddress().equals(playerInet)){
+               out = players.current();
+            }
+        }
+        return callUno(out);
+    }
+
     //if player move card is null, then draw card
     public boolean playCard(PlayerMove playerMove) {
             if (Card.checkMove(deck.getTopCard(), playerMove.card)) {

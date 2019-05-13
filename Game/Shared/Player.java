@@ -14,6 +14,7 @@ public class Player implements Serializable {
     private String name;
     private InetAddress inetAddress;
     private boolean kill = false;
+    private boolean unoSafe = false;//uno check condition
 
     public Player(String name, InetAddress inetAddress) {
         hand = new ArrayList<>();
@@ -27,6 +28,14 @@ public class Player implements Serializable {
 
     public boolean getKill(){
         return kill;
+    }
+
+    public void setUnoSafe(boolean b){
+        unoSafe = b;
+    }
+
+    public boolean getUnoSafe(){
+        return unoSafe;
     }
 
     public boolean playCard(Card playCard) {

@@ -250,6 +250,9 @@ public class Main {
             }
             if (game.checkCurrPlayer()) {
                 game.getCurrPlayer().setKill(false);
+                if(game.getCurrPlayer().getHandLength() >= 2){
+                    game.getCurrPlayer().setUnoSafe(false);
+                }
                 boolean skip = game.checkSkip();
                 //System.out.println(skip);
                 if (!skip) {
@@ -262,7 +265,7 @@ public class Main {
                     //System.out.println(game.getTopCard().toString() + " is top card");
                     //ame.getCurrPlayer().printCards();
                     System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
-                    message = pollMessages(startTime);
+                    message = pollMessages(startTime, game);
                     //String input = sc.nextLine();
                     if (message == C.exit){
                         listenerThread.interrupt();
@@ -272,7 +275,7 @@ public class Main {
                         Card card = game.drawCard();
                         System.out.println("Card drawn is " + card.toString());
                         System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
-                        message = pollMessages(startTime);
+                        message = pollMessages(startTime, game);
                         switch (message) {
                             case Constants.hold:
                                 //exit
@@ -281,7 +284,7 @@ public class Main {
                                 PlayerMove playerMove;
                                 if (card.getSuit().equals(Suit.Wild)) {
                                     System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
-                                    message = pollMessages(startTime);
+                                    message = pollMessages(startTime, game);
                                     if (message != C.timeout) {
                                         playerMove = new PlayerMove(card, resolveSuit(message));
                                     } else {
@@ -305,7 +308,7 @@ public class Main {
                         //System.out.println("trying to play " + card.toString());
                         if (card.getSuit().equals(Suit.Wild)) {
                             System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
-                            message = pollMessages(startTime);
+                            message = pollMessages(startTime, game);
                             if (message != C.timeout) {
                                 playerMove = new PlayerMove(card, resolveSuit(message));
                             } else {
@@ -382,9 +385,15 @@ public class Main {
         //kill thread
     }
 
-    private static int pollMessages(long startTime) {
-        boolean validCommand = false;
+    private static int pollMessages(long startTime, ClientGame game) {
         int message = C.timeout;
+        byte[] unoCheck = multiCastProtocol.receive(7000,10);
+        if(unoCheck != null){
+            DeCode d = new DeCode(unoCheck);
+            if(d.opcode == 4){
+                game.resolveUno(multiCastProtocol.getLastReceivedAddress());
+            }
+        }
         while (System.nanoTime() - startTime < C.timeoutNanos && message == C.timeout) {
             if (messages.size() > 0) {
                 message = messages.remove();
