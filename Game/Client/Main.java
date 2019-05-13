@@ -127,7 +127,7 @@ public class Main {
                 long start = System.nanoTime();
                 System.out.println("Waiting for messages");
                 while (System.nanoTime() - start < 12000000000L) {
-                    System.out.println(System.nanoTime() - start);
+                    //System.out.println(System.nanoTime() - start);
                     byte[] tempbyte = multiCastProtocol.receive(7000, C.MultiTimeout);
                     if (tempbyte != null) {
                         DeCode dec = new DeCode(tempbyte);
