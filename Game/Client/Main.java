@@ -61,6 +61,9 @@ public class Main {
                 if(game == null){
                     System.out.println("Game is no longer active");
                 }else{
+                    ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
+                    listenerThread = new Thread(clientListener);
+                    listenerThread.start();
                     runGame(game);
                 }
             }else{
