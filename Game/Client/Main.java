@@ -5,10 +5,11 @@
  */
 package Game.Client;
 
-import java.io.InterruptedIOException;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Queue;
+import java.util.Random;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.ArrayList;
@@ -28,102 +29,122 @@ public class Main {
     private static Constants C = new Constants();
     static String serverIP;
     static String multicastIP;
+    static String key;
     static Player me;
     static ConcurrentLinkedQueue<Integer> messages = new ConcurrentLinkedQueue<>();
     static boolean host;
     static ClientGame listenerGame;
     static Thread listenerThread;
     static boolean printedPlayersTurn = false;
+    static String filePath = "C:\\Users\\samue\\Desktop\\";
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-        System.out.println("Enter your name:");
-        String input = sc.nextLine();
-        try {
-            me = new Player(input, InetAddress.getLocalHost());
-        } catch (Exception exp) {
-            exp.printStackTrace();
-        }
-        System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
-        input = sc.nextLine();
+        System.out.println("Type \"load\" to load into game or \"lobby\" to join/host a lobby");
+        if (sc.nextLine().equals("load")) {
+            String[] data = readFromDisk();
+            if(data != null){
+                key = data[0];
+                multicastIP = data[1];
+                multiCastProtocol = new MultiCastProtocol(multicastIP);
 
-        if (input.equals("host")) {
-            System.out.println("Enter the multicast ip:");
-            multicastIP = sc.nextLine();
-            //start work by Benjamin Groman
-            boolean ipWorks = false;
-            while (!ipWorks) {
-                try {
-                    if (InetAddress.getByName(multicastIP).isMulticastAddress()) {
-                        ipWorks = true;
-                    } else {
-                        System.out.println("Invalid address. Please enter the multicast ip:");
-                        multicastIP = sc.nextLine();
-                    }
-                } catch (UnknownHostException e) {
-                    //this is handled the same as a non-multicast address
-                    System.out.println("Invalid address. Please enter the multicast ip:");
-                    multicastIP = sc.nextLine();
-                }
             }
-            //end work by Benjamin Groman
-            multiCastProtocol = new MultiCastProtocol(multicastIP);
-            ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
-            listenerThread = new Thread(clientListener);
-            listenerThread.start();
-            runGame(runLobby());
         } else {
-            serverIP = input;
-            InetAddress hostIP = null;
+            System.out.println("Enter your name:");
+            String input = sc.nextLine();
             try {
-                hostIP = InetAddress.getByName(serverIP);
+                me = new Player(input, InetAddress.getLocalHost());
             } catch (Exception exp) {
                 exp.printStackTrace();
             }
-            uniCastProtocol = new UniCastProtocol();
-            uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
-            //System.out.println("Sent unicast request");
-            try {
-                byte[] test = uniCastProtocol.recieve(20, 1400);
-                if (test != null) {
-                    DeCode deCode = new DeCode(test);
-                    if (deCode.opcode == 1 && deCode.ip != null) {
-                        multicastIP = deCode.ip;
-                        //System.out.println("multicast ip:" + multicastIP);
-                        multiCastProtocol = new MultiCastProtocol(multicastIP);
-                    }
-                } else {//server doesnt accept
-                    System.out.println("Test is null");
-                }
-            } catch (InterruptedIOException exp) {
-                exp.printStackTrace();
-            }
-            multiCastProtocol.send((new EnCode(me)).getHeader());
+            key = generatePrivateKey(16);
+            System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
+            input = sc.nextLine();
 
-            //System.out.println("Sent Player object in multicast");
-            long start = System.nanoTime();
-            System.out.println("Waiting for messages");
-            while (System.nanoTime() - start < 12000000000L) {
-                System.out.println(System.nanoTime() - start);
-                byte[] tempbyte = multiCastProtocol.receive(7000, C.MultiTimeout);
-                if (tempbyte != null) {
-                    DeCode dec = new DeCode(tempbyte);
-                    if (dec.opcode == 3) {
-                        //System.out.println("Received keep alive");
-                        start = System.nanoTime();
-                    } else if (dec.opcode == 2) {
-                        ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
-                        listenerThread = new Thread(clientListener);
-                        listenerThread.start();
-                        runGame(dec.game);
-                        return;
+            if (input.equals("host")) {
+                System.out.println("Enter the multicast ip:");
+                multicastIP = sc.nextLine();
+                //start work by Benjamin Groman
+                boolean ipWorks = false;
+                while (!ipWorks) {
+                    try {
+                        if (InetAddress.getByName(multicastIP).isMulticastAddress()) {
+                            ipWorks = true;
+                        } else {
+                            System.out.println("Invalid address. Please enter the multicast ip:");
+                            multicastIP = sc.nextLine();
+                        }
+                    } catch (UnknownHostException e) {
+                        //this is handled the same as a non-multicast address
+                        System.out.println("Invalid address. Please enter the multicast ip:");
+                        multicastIP = sc.nextLine();
                     }
                 }
-            }
+                //end work by Benjamin Groman
+                multiCastProtocol = new MultiCastProtocol(multicastIP);
+                ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
+                listenerThread = new Thread(clientListener);
+                listenerThread.start();
+                runGame(runLobby());
+            } else {
+                serverIP = input;
+                InetAddress hostIP = null;
+                try {
+                    hostIP = InetAddress.getByName(serverIP);
+                } catch (Exception exp) {
+                    exp.printStackTrace();
+                }
+                uniCastProtocol = new UniCastProtocol();
+                uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
+                //System.out.println("Sent unicast request");
+                try {
+                    byte[] test = uniCastProtocol.recieve(20, 1400);
+                    if (test != null) {
+                        DeCode deCode = new DeCode(test);
+                        if (deCode.opcode == 1 && deCode.ip != null) {
+                            multicastIP = deCode.ip;
+                            //System.out.println("multicast ip:" + multicastIP);
+                            multiCastProtocol = new MultiCastProtocol(multicastIP);
 
+                            if (saveToDisk(key, multicastIP)) {
+                                System.out.println("Info saved to disk");
+                            } else {
+                                System.out.println("Failed to save to disk");
+                            }
+                        }
+                    } else {//server doesnt accept
+                        System.out.println("Test is null");
+                    }
+                } catch (InterruptedIOException exp) {
+                    exp.printStackTrace();
+                }
+                multiCastProtocol.send((new EnCode(me)).getHeader());
+
+                //System.out.println("Sent Player object in multicast");
+                long start = System.nanoTime();
+                System.out.println("Waiting for messages");
+                while (System.nanoTime() - start < 12000000000L) {
+                    System.out.println(System.nanoTime() - start);
+                    byte[] tempbyte = multiCastProtocol.receive(7000, C.MultiTimeout);
+                    if (tempbyte != null) {
+                        DeCode dec = new DeCode(tempbyte);
+                        if (dec.opcode == 3) {
+                            //System.out.println("Received keep alive");
+                            start = System.nanoTime();
+                        } else if (dec.opcode == 2) {
+                            ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
+                            listenerThread = new Thread(clientListener);
+                            listenerThread.start();
+                            runGame(dec.game);
+                            return;
+                        }
+                    }
+                }
+
+            }
         }
     }
 
@@ -133,7 +154,7 @@ public class Main {
         tempList.add(me);
         UniCastProtocol lobbyUniCast = new UniCastProtocol();
         Player newPlayer = null;
-        Player newPlayer2 = null;
+        Player newPlayer2;
         long time = System.nanoTime();
         int message = C.drawCard;
         while (message != C.startGame) {
@@ -372,5 +393,52 @@ public class Main {
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
         int multiple = players.size() > 5 ? 4 : 2;
         return new ClientGame(players, multiple);
+    }
+
+    private static String generatePrivateKey(int length){
+        int lowerBound = 48;
+        int upperBound = 122;
+        Random random = new Random();
+        StringBuilder buf = new StringBuilder(length);
+        for(int i = 0; i < length; i++){
+            int randomBoundedInt = lowerBound + (int)(random.nextFloat() * (upperBound - lowerBound + 1));
+            buf.append((char)randomBoundedInt);
+        }
+        return buf.toString();
+    }
+
+    private static boolean saveToDisk(String key, String multicastip){
+        File file = new File(filePath + "unoSave.txt");
+        if(file.exists()){
+            file.delete();
+        }
+        try {
+            file.createNewFile();
+            FileWriter fileWriter = new FileWriter(file);
+            fileWriter.write(key);
+            fileWriter.write(System.lineSeparator());
+            fileWriter.write(multicastip);
+            fileWriter.close();
+        }catch (IOException exp){
+            return false;
+        }
+        return true;
+    }
+
+    private static String[] readFromDisk(){
+        File file = new File(filePath + "unoSave.txt");
+        if(!file.exists()){
+            return null;
+        }
+        try {
+            FileReader fileReader = new FileReader(file);
+            BufferedReader bufferedReader = new BufferedReader(fileReader);
+            String key = bufferedReader.readLine();
+            String multicastip = bufferedReader.readLine();
+            String[] out = {key,multicastip};
+            return out;
+        }catch (IOException exp) {
+            return null;
+        }
     }
 }
