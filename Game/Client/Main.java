@@ -185,7 +185,7 @@ public class Main {
         }
 
         //System.out.println(tempList.size());
-        if (tempList.size() > 1) {
+        if (tempList.size() > 0) {
             //System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             ClientGame game = generateGame(playerList);
