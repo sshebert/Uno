@@ -41,14 +41,14 @@ public class DeCode {
             }
         }else if(opcode == 1) {//send multicast IP
             if (unParsedData.length - 4 > 0) {
-                byte[] unparsedString = new byte[unParsedData.length - 4];
+                byte[] unparsedString = new byte[bb.remaining()];
                 bb.get(unparsedString);
                 ip = new String(unparsedString);
             } else {
                 ip = null;
             }
         }else if(opcode == 2){//send game
-            byte[] gameData = new byte[unParsedData.length-4];
+            byte[] gameData = new byte[bb.remaining()];
             if(gameData.length>0){
                 bb.get(gameData);
                 try{
