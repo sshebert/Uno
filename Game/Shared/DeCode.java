@@ -25,7 +25,7 @@ public class DeCode {
         ByteBuffer bb = ByteBuffer.wrap(new AESEncrytion(Main.getKey()).decryptToBytes(unParsedData));
         opcode = bb.getInt();
         if(opcode == 0){
-            byte[] playerData = new byte[unParsedData.length-4];
+            byte[] playerData = new byte[bb.remaining()];
             if(playerData.length>0){
                 bb.get(playerData);
                 try{
