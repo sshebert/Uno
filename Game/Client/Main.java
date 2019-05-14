@@ -96,7 +96,17 @@ public class Main {
                 }
                 //end work by Benjamin Groman
                 multiCastProtocol = new MultiCastProtocol(multicastIP);
-                key = generatePrivateKey(16);
+                //start work by Benjamin Groman
+                System.out.println("Enter a 16 character key:");
+                input = sc.nextLine();
+                boolean goodKey = validKey(input, 16);
+                while (!goodKey) {
+                	System.out.println("That key is not valid. Please try again:");
+                	input = sc.nextLine();
+                	goodKey = validKey(input, 16);
+                }
+                key = input;
+                //end work by Benjamin Groman
                 System.out.println("Tell all your friends the key is: " + key);//by Benjamin Groman
                 if (saveToDisk(key, multicastIP)) {
                     System.out.println("Info saved to disk");
@@ -502,7 +512,7 @@ public class Main {
     private static boolean validKey(String k, int len) {
     	if (k.length() != len) return false;
     	for (char c : k.toCharArray()) {
-    		if (c < 48 || c > 122) return false;
+    		if (c < 48 || c > 122 || c == 92) return false;
     	}
     	return true;
     }
