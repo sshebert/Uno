@@ -21,7 +21,7 @@ public class AESEncrytion {
 
     public byte[] encrypt(ArrayList hand){
         try {
-            byte[] uncryptData = getBytes(hand);
+        	byte[] uncryptData = getBytes(hand);
             SecretKeySpec secretKey = new SecretKeySpec(key,ALGORITHM);
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
@@ -40,6 +40,38 @@ public class AESEncrytion {
             e.printStackTrace();
         }
         return null;
+    }
+    /**Based on the other encrypt method.
+     * @author Benjamin Groman
+     * @param data The bytes to encrypt
+     * @return The encrypted bytes, or the original bytes if it failed to encrypt
+     */
+    public byte[] encrypt(byte[] data) {
+    	try {
+            SecretKeySpec secretKey = new SecretKeySpec(key,ALGORITHM);
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            return cipher.doFinal(data);
+    	}
+    	catch (Exception e) {
+    		return data;
+    	}
+    }
+    /**Based on the other decrypt method.
+     * @author Benjamin Groman
+     * @param encryption The bytes to decrypt
+     * @return The decrypted bytes, or the original bytes if decryption failed
+     */
+    public byte[] decryptToBytes(byte[] encryption) {
+    	try {
+            SecretKeySpec secretKey = new SecretKeySpec(key, ALGORITHM);
+            Cipher cipher = Cipher.getInstance(ALGORITHM);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            return cipher.doFinal(encryption);
+        }
+    	catch (Exception e) {
+    		return encryption;
+    	}
     }
 
     public ArrayList decrypt(byte[] encryption){
