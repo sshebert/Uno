@@ -37,6 +37,7 @@ public class Main {
     static Thread listenerThread;
     static boolean printedPlayersTurn = false;
     static String filePath = "..\\unoSave.txt";
+    static boolean listenerRequestedExit = false;
 
     /**
      * @param args the command line arguments
@@ -259,7 +260,7 @@ public class Main {
 
     public static void runGame(ClientGame game) {
         //System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
-        while (game.checkGameRunning()) {
+        while (game.checkGameRunning() && !listenerRequestedExit) {
             //receive game
             if (!printedPlayersTurn) {
                 System.out.println(game.getCurrPlayer().getName() + "'s turn");
@@ -340,9 +341,10 @@ public class Main {
                             card = game.drawCard();
                             System.out.println("Card drawn is " + card.toString());
                         }
-                    } else if (message == C.exit) {
+                    } else if (message == C.exit || listenerRequestedExit) {
                         //disconnect
                     	//this needs to do something! - Benjamin Groman
+                    	System.exit(0);
                     } else if (message == C.timeout) {
                         System.out.println("Out of time");
                         game.drawCard();
@@ -402,6 +404,13 @@ public class Main {
             }
 
         }
+        //start work by Benjamin Groman
+        //stop a winner from getting declared on your end when you quit
+        if (listenerRequestedExit) {
+        	System.out.println("Terminating as requested.");
+        	System.exit(0);
+        }
+        //end work by Benjamin Groman
         System.out.println(game.getWinner().getName() + " won");
         listenerThread.interrupt();
         return;
