@@ -6,6 +6,7 @@
 package Game.Shared;
 
 import Game.Client.ClientGame;
+import Game.Client.Main;
 
 import java.io.*;
 import java.nio.ByteBuffer;
@@ -21,7 +22,7 @@ public class DeCode {
     public ClientGame game;
 
     public DeCode(byte[] unParsedData){//send player object
-        ByteBuffer bb = ByteBuffer.wrap(unParsedData);
+        ByteBuffer bb = ByteBuffer.wrap(new AESEncrytion(Main.getKey()).decryptToBytes(unParsedData));
         opcode = bb.getInt();
         if(opcode == 0){
             byte[] playerData = new byte[unParsedData.length-4];
@@ -63,6 +64,12 @@ public class DeCode {
             }
         }else if(opcode == 3){//ack
 
+        }
+        else {//failed to decrypt packet - section by Benjamin Groman
+        	opcode = -1;
+        	ip = null;
+        	player = null; 
+        	game = null;
         }
     }
 }
