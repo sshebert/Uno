@@ -183,7 +183,7 @@ public class Main {
                             listenerThread = new Thread(clientListener);
                             listenerThread.start();
                             runGame(dec.game);
-                            return;
+                            System.exit(0);
                         }
                     }
                 }
