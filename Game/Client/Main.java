@@ -482,6 +482,9 @@ public class Main {
     	}
     	return true;
     }
+    public static String getKey() {
+    	return key;
+    }
 
     private static boolean saveToDisk(String key, String multicastip){
         File file = new File(filePath);
