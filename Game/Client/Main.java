@@ -128,6 +128,7 @@ public class Main {
                 	input = sc.nextLine();
                 	goodKey = validKey(input, 16);
                 }
+                key = input;
                 //end work by Benjamin Groman
                 uniCastProtocol = new UniCastProtocol();
                 uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
