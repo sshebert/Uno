@@ -6,7 +6,7 @@
 package Game.Shared;
 
 import Game.Client.ClientGame;
-
+import Game.Client.Main;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -74,7 +74,7 @@ public class EnCode {
     }
 
     public byte[] getHeader(){
-        return stream.toByteArray();
+        return new AESEncrytion(Main.getKey()).encrypt(stream.toByteArray());
     }
 
     public int getSize(){
