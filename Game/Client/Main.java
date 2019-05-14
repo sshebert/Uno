@@ -159,7 +159,7 @@ public class Main {
                 //System.out.println("Sent Player object in multicast");
                 long start = System.nanoTime();
                 System.out.println("Waiting for messages");
-                while (System.nanoTime() - start < 12000000000L) {
+                while (System.nanoTime() - start < 12000000000L && !listenerRequestedExit) {
                     //System.out.println(System.nanoTime() - start);
                     byte[] tempbyte = multiCastProtocol.receive(7000, C.MultiTimeout);
                     if (tempbyte != null) {
@@ -176,7 +176,15 @@ public class Main {
                         }
                     }
                 }
-
+                //start work by Benjamin Groman
+                if (listenerRequestedExit) {
+                	System.out.println("Server lost. Terminating.");
+                }
+                else {
+                	System.out.println("Terminating as requested.");
+                }
+                System.exit(0);
+                //end work by Benjamin Groman
             }
         }
     }
@@ -191,6 +199,12 @@ public class Main {
         long time = System.nanoTime();
         int message = C.drawCard;
         while (message != C.startGame) {
+        	//start work by Benjamin Groman
+        	if (message == C.exit || listenerRequestedExit) {
+        		System.out.println("Terminating as requested.");
+        		System.exit(0);
+        	}
+        	//end work by Benjamin Groman
             try {
                 if (System.nanoTime() - time > (C.timeoutNanos / 6L)) {
                     time = System.nanoTime();
