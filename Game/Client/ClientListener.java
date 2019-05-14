@@ -45,6 +45,7 @@ class ClientListener implements Runnable {
             else if (message.equalsIgnoreCase("exit")) {
                 queue.add(C.exit);
                 exitRequested = true;
+                Main.listenerRequestedExit = true;
             }
             else if(message.equals("uno")){
                 multiCastProtocol.send(new EnCode(4).getHeader());
