@@ -194,31 +194,31 @@ public class Main {
             }
         }
     }
-
-    public static ClientGame runLobby() {
+    //Lobby written by Alex Chambers
+    public static ClientGame runLobby() { 
         System.out.println("Running Lobby");
-        ArrayList<Player> tempList = new ArrayList<>();
-        tempList.add(me);
-        UniCastProtocol lobbyUniCast = new UniCastProtocol();
-        Player newPlayer = null;
+        ArrayList<Player> tempList = new ArrayList<>();//Temporary ArrayList for players before adding to CyclicLinkedList
+        tempList.add(me);   //Add host Player object to ArrayList
+        UniCastProtocol lobbyUniCast = new UniCastProtocol();  //Open a unicast Socket
+        Player newPlayer = null;  
         Player newPlayer2;
         long time = System.nanoTime();
         int message = C.drawCard;
-        while (message != C.startGame) {
+        while (message != C.startGame) {    //While the queue does not have a start game message in it 
         	//start work by Benjamin Groman
         	if (message == C.exit || listenerRequestedExit) {
         		System.out.println("Terminating as requested.");
         		System.exit(0);
         	}
         	//end work by Benjamin Groman
-            try {
+            try {  //Keep alive statement                                                        
                 if (System.nanoTime() - time > (C.timeoutNanos / 6L)) {
                     time = System.nanoTime();
-                    multiCastProtocol.send((new EnCode(3)).getHeader());
+                    multiCastProtocol.send((new EnCode(3)).getHeader()); 
                     //System.out.println("Just sent keep alive");
                 }
 
-                byte[] temp = lobbyUniCast.recieve(3, 1400);
+                byte[] temp = lobbyUniCast.recieve(3, 1400);    //Receive unicast request from client looking for a game
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
                     newPlayer = deCode.player;
@@ -226,14 +226,14 @@ public class Main {
                         newPlayer = deCode.player;
                         System.out.println(newPlayer.getName());
                         if (tempList.contains(newPlayer) == false) {
-                            EnCode enCode = new EnCode(multicastIP);
-                            lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());
+                            EnCode enCode = new EnCode(multicastIP);     
+                            lobbyUniCast.send(enCode.getHeader(), lobbyUniCast.getLastReceivedAddress());   //Send player multicast game ip
                             //System.out.println("Sent Multicast IP");
                         }
                     }
                 }
 
-                temp = multiCastProtocol.receive(1400, C.MultiTimeout);
+                temp = multiCastProtocol.receive(1400, C.MultiTimeout);     //Listen for player to join multicast
                 if (temp != null) {
                     DeCode deCode = new DeCode(temp);
                     //System.out.println("Received Multicast Message");
@@ -242,7 +242,7 @@ public class Main {
                         newPlayer2 = deCode.player;
                         if (newPlayer.getInetAddress().equals(newPlayer2.getInetAddress())) {
                             //System.out.println("equals previous player");
-                            tempList.add(newPlayer);
+                            tempList.add(newPlayer);   //Add the player to the ArrayList only after they have joined the multicast
                             System.out.println("Just Added Player " + newPlayer.getName());
                         }
                     }
@@ -259,13 +259,13 @@ public class Main {
         }
 
         //System.out.println(tempList.size());
-        if (tempList.size() > 0) {
+        if (tempList.size() > 0) {          //At start of game, if there are players, create the CyclicLinkedList
             //System.out.println(tempList.size());
             CyclicLinkedList<Player> playerList = new CyclicLinkedList(tempList);
             ClientGame game = generateGame(playerList);
             EnCode enCode = new EnCode(game);
             //System.out.println("Game Size: " + enCode.getHeader().length );
-            multiCastProtocol.send((new EnCode(game).getHeader()));
+            multiCastProtocol.send((new EnCode(game).getHeader()));   //send the first game packet
             return game;
 
         }
