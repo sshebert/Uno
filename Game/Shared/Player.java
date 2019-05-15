@@ -1,6 +1,5 @@
 //author Sam Shebert
 
-//need to fix encapsulation so clients cant see other players cards, but they can see stuff like getHandLength()
 package Game.Shared;
 
 import java.io.Serializable;
@@ -13,7 +12,7 @@ public class Player implements Serializable {
     private Card lastDrewCard;
     private String name;
     private InetAddress inetAddress;
-    private boolean kill = false;
+    private boolean kill = false;//TTL for fault tolerance
     private boolean unoSafe = false;//uno check condition
 
     public Player(String name, InetAddress inetAddress) {
@@ -43,7 +42,7 @@ public class Player implements Serializable {
         return hand.remove(playCard);
     }
 
-    public Card getCard(int index) {
+    public Card getCard(int index) {//play card with an index
         index -= C.minIndex;
         return hand.get(index);
     }
