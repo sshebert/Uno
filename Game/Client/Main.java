@@ -1,8 +1,6 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+//multiple authors
+//Main was debugged by everyone
+
 package Game.Client;
 
 import java.io.*;
@@ -15,9 +13,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.ArrayList;
 import Game.Shared.*;
 
-/**
- * @author alawren3
- */
 public class Main {
 
     /**
@@ -282,24 +277,25 @@ public class Main {
         game.getCurrPlayer().printCards();
         //print out all players cards
     }
-
+    
+    //author Sam Shebert
     public static void runGame(ClientGame game) {
         //System.out.println(game.getCurrPlayer().getName() + " me: " + me.getName());
-        while (game.checkGameRunning() && !listenerRequestedExit) {
+        while (game.checkGameRunning() && !listenerRequestedExit) {//check game is still running
             //receive game
-            if (!printedPlayersTurn) {
+            if (!printedPlayersTurn) {//prevents printing a game update when multiple of the same multicast are received
                 System.out.println(game.getCurrPlayer().getName() + "'s turn");
                 System.out.println(game.getTopCard().toString() + " is top card");
             }
-            if (game.checkCurrPlayer()) {
-                game.getCurrPlayer().setKill(false);
-                if(game.getCurrPlayer().getHandLength() >= 2){
+            if (game.checkCurrPlayer()) {//check if it is this clients turn
+                game.getCurrPlayer().setKill(false);//reset your TTL
+                if(game.getCurrPlayer().getHandLength() >= 2){//reset uno call from last turn
                     game.getCurrPlayer().setUnoSafe(false);
                 }
-                boolean skip = game.checkSkip();
+                boolean skip = game.checkSkip();//check if you are being skipped
                 //System.out.println(skip);
-                if (!skip) {
-                    long startTime = System.nanoTime();
+                if (!skip) {//if not skipped, do turn
+                    long startTime = System.nanoTime();//start timer
                     boolean validMove;
                     int message;
 
@@ -308,16 +304,16 @@ public class Main {
                     //System.out.println(game.getTopCard().toString() + " is top card");
                     //ame.getCurrPlayer().printCards();
                     System.out.println("Enter the index of the card you would like to play or \"draw\" to draw a card");
-                    message = pollMessages(startTime, game);
+                    message = pollMessages(startTime, game);//checks user messages/timer
                     //String input = sc.nextLine();
                     if (message == C.exit){
                         listenerThread.interrupt();
                         return;
                     }
-                    if (message == C.drawCard) {
+                    if (message == C.drawCard) {//player types draw
                         Card card = game.drawCard();
                         System.out.println("Card drawn is " + card.toString());
-                        System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");
+                        System.out.println("Enter \"play\" to play drawn card or \"hold\" to end turn");//give player option to play drawed card
                         message = pollMessages(startTime, game);
                         switch (message) {
                             case Constants.hold:
@@ -325,7 +321,7 @@ public class Main {
                                 break;
                             case Constants.play:
                                 PlayerMove playerMove;
-                                if (card.getSuit().equals(Suit.Wild)) {
+                                if (card.getSuit().equals(Suit.Wild)) {//check wild case, will require a suit to be inputed
                                     System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                                     message = pollMessages(startTime, game);
                                     if (message != C.timeout) {
@@ -338,18 +334,18 @@ public class Main {
                                 }
                                 validMove = game.playCard(playerMove);//will handle null as false
                                 break;
-                            case Constants.timeout:
+                            case Constants.timeout://if player runs out of turn here, don't make them draw another card just end turn
                                 System.out.println("Out of time");
                                 break;
                             default:
                                 //incorrect command, exit
                                 break;
                         }
-                    } else if (message >= C.minIndex) {
+                    } else if (message >= C.minIndex) {//player trying to play card
                         PlayerMove playerMove;
                         Card card = game.getCard(message);
                         //System.out.println("trying to play " + card.toString());
-                        if (card.getSuit().equals(Suit.Wild)) {
+                        if (card.getSuit().equals(Suit.Wild)) {//check wild case, will require a suit to be inputed
                             System.out.println("Enter the suit of the card you would like to play (green, blue, red, yellow):");
                             message = pollMessages(startTime, game);
                             if (message != C.timeout) {
@@ -362,7 +358,7 @@ public class Main {
                             playerMove = new PlayerMove(card);
                         }
                         validMove = game.playCard(playerMove);//will handle null as false
-                        if (!validMove) {
+                        if (!validMove) {//if player did not play a valid card or runs out of time here, draw card
                             card = game.drawCard();
                             System.out.println("Card drawn is " + card.toString());
                         }
@@ -370,7 +366,7 @@ public class Main {
                         //disconnect
                     	//this needs to do something! - Benjamin Groman
                     	System.exit(0);
-                    } else if (message == C.timeout) {
+                    } else if (message == C.timeout) {//if player runs out of time here, draw card
                         System.out.println("Out of time");
                         game.drawCard();
                     } else {
@@ -379,33 +375,33 @@ public class Main {
 
                     //finish turn
                     
-                    game.nextTurn();
+                    game.nextTurn();//increment game state so next player will know it is their turn
                     //send game
                     //System.out.println("just sent game");
                     multiCastProtocol.send((new EnCode(game)).getHeader());
-                } else {
-                    Card[] cards = game.getSkipCards();
+                } else {//if you were skipped
+                    Card[] cards = game.getSkipCards();//check if you need to draw cards (for draw 2/wild draw)
                     if (cards != null) {
                         for (Card card : cards) {
                             System.out.println("Skip draw card: " + card.toString());
                         }
                     }
-                    game.nextTurn();
+                    game.nextTurn();//end your turn and send game
                     multiCastProtocol.send((new EnCode(game)).getHeader());
                 }
                 System.out.println();
 
-            } else {
+            } else {//not your turn
                 //wait for other players turn
 
                 //receive game
-                byte[] gameData = multiCastProtocol.receive(7000, 30000);
+                byte[] gameData = multiCastProtocol.receive(7000, 30000);// will return null if timeout
 
-                if (multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())) {
+                if (multiCastProtocol.getLastReceivedAddress().equals(me.getInetAddress())) {//prevents printing game state multiple times when receiving your own multicast packet
                     //received my own game packet
                     //System.out.println("Just received my own game packet");
                     printedPlayersTurn = true;
-                } else if (gameData != null) {
+                } else if (gameData != null) {//if received something
                     DeCode deCode = new DeCode(gameData);
                     if(deCode.opcode == 2) {// received game
                         System.out.println();
@@ -416,14 +412,14 @@ public class Main {
                         System.out.println("Uno called");
                         printedPlayersTurn = true;
                         //do nothing
-                    }
-                } else {
-                    if(game.getCurrPlayer().getKill()){
-                        game.removePlayer(game.getCurrPlayer());
+                    }//if did not receive packet with opcode 2 or 4 then do nothing
+                } else {//current player disconnected/died
+                    if(game.getCurrPlayer().getKill()){//check there TTL
+                        game.removePlayer(game.getCurrPlayer());//if TTL is up, remove from game
                     }else{
-                        game.getCurrPlayer().setKill(true);
+                        game.getCurrPlayer().setKill(true);//if TTL is not up, set TTL to 0
                     }
-                    game.nextTurn();
+                    game.nextTurn();//increment the game state, now next player can take over
                     multiCastProtocol.send((new EnCode(game)).getHeader());
                 }
             }
@@ -441,7 +437,12 @@ public class Main {
         return;
         //kill thread
     }
-
+    
+    //author Sam Shebert
+    //polls listener thread for user inputs
+    //also keeps track of the players turn duration and receiving uno packets
+    //if player runs out of time, the game will still send a multicast signalling that client is still alive and the turn is over
+    //this is different than if the client dies, as then it will not send anything signalling the end of the turn
     private static int pollMessages(long startTime, ClientGame game) {
         int message = C.timeout;
         while (System.nanoTime() - startTime < C.timeoutNanos && message == C.timeout) {
@@ -462,7 +463,8 @@ public class Main {
         }
         return message;
     }
-
+    
+    //author Sam Shebert
     private static Suit resolveSuit(int input) {
         Suit suit = null;
         switch (input) {
@@ -485,12 +487,14 @@ public class Main {
     private static boolean isNumeric(String str) {
         return str.matches("-?\\d+(\\.\\d+)?");
     }
-
+    
+    //author Sam Shebert
     private static ClientGame generateGame(CyclicLinkedList<Player> players) {
         int multiple = players.size() > 5 ? 2 : 1;
         return new ClientGame(players, multiple);
     }
 
+    //author Sam Shebert
     private static String generatePrivateKey(int length){
         int lowerBound = 48;
         int upperBound = 122;
@@ -520,6 +524,7 @@ public class Main {
     	return key;
     }
 
+    //author Sam Shebert
     private static boolean saveToDisk(String key, String multicastip){
         File file = new File(filePath);
         if(file.exists()){
@@ -538,6 +543,7 @@ public class Main {
         return true;
     }
 
+    //author Sam Shebert
     private static String[] readFromDisk(){
         File file = new File(filePath);
         if(!file.exists()){
