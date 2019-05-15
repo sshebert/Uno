@@ -48,10 +48,15 @@ public class AESEncrytion {
      */
     public byte[] encrypt(byte[] data) {
     	try {
-            SecretKeySpec secretKey = new SecretKeySpec(key,ALGORITHM);
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            cipher.init(Cipher.ENCRYPT_MODE, secretKey);
-            return cipher.doFinal(data);
+    		byte[] b = new byte[data.length];
+    		for (int i = 0; i < data.length; i++) {
+    			b[i] = (byte)(data[i] ^ key[i%key.length]);
+    		}
+    		return b;
+            //SecretKeySpec secretKey = new SecretKeySpec(key,ALGORITHM);
+            //Cipher cipher = Cipher.getInstance(ALGORITHM);
+            //cipher.init(Cipher.ENCRYPT_MODE, secretKey);
+            //return cipher.doFinal(data);
     	}
     	catch (Exception e) {
     		return data;
@@ -64,10 +69,11 @@ public class AESEncrytion {
      */
     public byte[] decryptToBytes(byte[] encryption) {
     	try {
-            SecretKeySpec secretKey = new SecretKeySpec(key, ALGORITHM);
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            return cipher.doFinal(encryption);
+    		return encrypt(encryption);
+            //SecretKeySpec secretKey = new SecretKeySpec(key, ALGORITHM);
+            //Cipher cipher = Cipher.getInstance(ALGORITHM);
+            //cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            //return cipher.doFinal(encryption);
         }
     	catch (Exception e) {
     		return encryption;
