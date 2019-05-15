@@ -12,7 +12,8 @@ import java.io.*;
 import java.nio.ByteBuffer;
 /**
  *
- * @author alawren3
+ * @author Alex L
+ * @author Shawn W
  */
 public class DeCode {
 
