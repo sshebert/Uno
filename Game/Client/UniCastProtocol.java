@@ -55,7 +55,10 @@ public class UniCastProtocol {
             receiver = new DatagramPacket(new byte[dataSize], dataSize);
             socket.receive(receiver);
             lastReceivedAddress = receiver.getAddress();
-            return receiver.getData();
+            byte[] data = new byte[receiver.getLength()];
+            ByteBuffer bb = ByteBuffer.wrap(receiver.getData());
+            bb.get(data);
+            return data;
         } catch (SocketTimeoutException e) {
             count++;
             if (count >= attempts) {
