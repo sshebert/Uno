@@ -16,7 +16,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  *
- * @author alawren3
+ * @author Alex L
+ * @author Shawn W
  */
 public class MultiCastProtocol {
     
