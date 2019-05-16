@@ -39,6 +39,7 @@ public class Main {
      */
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        //create a player with any given string as the name
         System.out.println("Enter your name:");
         String input = sc.nextLine();
         try {
@@ -66,6 +67,7 @@ public class Main {
                 System.out.println("Save file does not exist");
             }
         } else {
+        	//lobby prep
             //key = generatePrivateKey(16);
             System.out.println("Enter the ip of the server (xxx.xxx.xxx.xxx) or \"host\" to host your own game:");
             input = sc.nextLine();
@@ -74,6 +76,7 @@ public class Main {
                 System.out.println("Enter the multicast ip:");
                 multicastIP = sc.nextLine();
                 //start work by Benjamin Groman
+                //cycles until a valid multicast address is given
                 boolean ipWorks = false;
                 while (!ipWorks) {
                     try {
@@ -92,6 +95,7 @@ public class Main {
                 //end work by Benjamin Groman
                 multiCastProtocol = new MultiCastProtocol(multicastIP);
                 //start work by Benjamin Groman
+                //cycles until a valid key is given
                 System.out.println("Enter a 16 character key:");
                 input = sc.nextLine();
                 boolean goodKey = validKey(input, 16);
@@ -101,20 +105,25 @@ public class Main {
                 	goodKey = validKey(input, 16);
                 }
                 key = input;
+                System.out.println("Tell all your friends the key is: " + key);
                 //end work by Benjamin Groman
-                System.out.println("Tell all your friends the key is: " + key);//by Benjamin Groman
+                //try to write to disk
                 if (saveToDisk(key, multicastIP)) {
                     System.out.println("Info saved to disk");
                 } else {
                     System.out.println("Failed to save to disk");
                 }
+                //launch the listener
                 ClientListener clientListener = new ClientListener(messages, multiCastProtocol);
                 listenerThread = new Thread(clientListener);
                 listenerThread.start();
+                //lobby stage, then game.
                 runGame(runLobby());
             } else {
+            	//joining, not hosting
                 serverIP = input;
                 InetAddress hostIP = null;
+                //not very forgiving here
                 try {
                     hostIP = InetAddress.getByName(serverIP);
                 } catch (Exception exp) {
@@ -125,6 +134,7 @@ public class Main {
                     //exp.printStackTrace();
                 }
                 //start work by Benjamin Groman
+                //cycle until a decent key is given, although actual strength is not accounted for
                 System.out.println("Enter the host's key:");
                 input = sc.nextLine();
                 boolean goodKey = validKey(input, 16);
@@ -135,25 +145,34 @@ public class Main {
                 }
                 key = input;
                 //end work by Benjamin Groman
+                //try to join
                 uniCastProtocol = new UniCastProtocol();
                 uniCastProtocol.send((new EnCode(me)).getHeader(), hostIP);
                 //System.out.println("Sent unicast request");
                 try {
                     byte[] test = uniCastProtocol.recieve(20, 1400);
                     if (test != null) {
+                    	//we got a packet
+                    	//extract info
                         DeCode deCode = new DeCode(test);
                         if (deCode.opcode == 1 && deCode.ip != null) {
                             multicastIP = deCode.ip;
                             //System.out.println("multicast ip:" + multicastIP);
                             multiCastProtocol = new MultiCastProtocol(multicastIP);
-
+                            //save info
                             if (saveToDisk(key, multicastIP)) {
                                 System.out.println("Info saved to disk");
                             } else {
                                 System.out.println("Failed to save to disk");
                             }
                         }
+                        //else we got a bad packet - inserted after demo by Benjamin Groman
+                        else {
+                        	System.out.println("Test is bad");
+                        	return;
+                        }
                     } else {//server doesnt accept
+                    	//we didn't get a packet
                         System.out.println("Test is null");
                         return;//we should probably just exit here - Benjamin Groman
                     }
@@ -161,8 +180,9 @@ public class Main {
                     exp.printStackTrace();
                 }
                 multiCastProtocol.send((new EnCode(me)).getHeader());
-
                 //System.out.println("Sent Player object in multicast");
+
+                //loop until we miss a keep alive, a game is sent, or the player quits
                 long start = System.nanoTime();
                 System.out.println("Waiting for messages");
                 while (System.nanoTime() - start < 12000000000L && !listenerRequestedExit) {
@@ -183,10 +203,13 @@ public class Main {
                     }
                 }
                 //start work by Benjamin Groman
-                if (listenerRequestedExit) {
+                //"not" inserted after demo
+                if (!listenerRequestedExit) {
+                	//user quit
                 	System.out.println("Server lost. Terminating.");
                 }
                 else {
+                	//server died
                 	System.out.println("Terminating as requested.");
                 }
                 System.exit(0);
