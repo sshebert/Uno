@@ -10,7 +10,11 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-
+/**All AES encryption was written by Alex L. The two functions used in the rest of the project were written by Benjamin Groman.
+ * @auther Alex L
+ * @author Benjamin Groman
+ *
+ */
 public class AESEncrytion {
     private byte[] key;
     private static final String ALGORITHM = "AES";
@@ -41,7 +45,7 @@ public class AESEncrytion {
         }
         return null;
     }
-    /**Based on the other encrypt method.
+    /**A simple XOR of the given bytes with the key from the constructor
      * @author Benjamin Groman
      * @param data The bytes to encrypt
      * @return The encrypted bytes, or the original bytes if it failed to encrypt
@@ -62,7 +66,8 @@ public class AESEncrytion {
     		return data;
     	}
     }
-    /**Based on the other decrypt method.
+    /**Does the exact same thing as encrypt because XOR is its own inverse.
+     * Name kept to avoid changing references in other files, and also in case AES is desired later.
      * @author Benjamin Groman
      * @param encryption The bytes to decrypt
      * @return The decrypted bytes, or the original bytes if decryption failed
